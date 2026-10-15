@@ -383,10 +383,24 @@ s.addNotes(GUIDE_NOTES[noteIdx++] ||
 // ---------- 8. Interpretabilidad ----------
 s = pres.addSlide({ masterName: "CONTENIDO", sectionTitle: "Resultados" });
 s.addText("¿Dónde miran los modelos?", { placeholder: "title" });
-fitImage(s, "gradcam_examples.png", 0.4, 1.3, 7.6, 5.2, "gradcam");
-fitImage(s, "attention_example.png", 8.1, 1.3, 4.9, 5.2, "atencion-vit");
-s.addText("Grad-CAM: DenseNet121, ResNet18 y MaxViT-T (híbrido), para la clase real", { x: 0.4, y: 6.55, w: 7.6, h: 0.4, fontSize: 13, color: C.accent5, align: "center", margin: 0, isTextBox: true });
-s.addText("ViT-B/16: atención del último bloque y rollout", { x: 8.1, y: 6.55, w: 4.9, h: 0.4, fontSize: 13, color: C.accent5, align: "center", margin: 0, isTextBox: true });
+// Las dos figuras muestran los mismos 3 pacientes en el mismo orden (filas). Etiquetas en español a la izquierda,
+// alineadas con cada fila, para poder señalar "la fila del derrame" sin leer las etiquetas en inglés de la figura.
+// Orden de las filas de results/gradcam_examples.png y attention_example.png en la corrida principal (12k):
+const ROWS = [["Infiltración", "Infiltration"], ["Derrame pleural", "Effusion"], ["Atelectasia", "Atelectasis"]];
+const FIG_Y = 1.35, FIG_H = 4.65, ROW_H = FIG_H / ROWS.length;
+fitImage(s, "gradcam_examples.png", 1.75, FIG_Y, 6.2, FIG_H, "gradcam");
+fitImage(s, "attention_example.png", 8.15, FIG_Y, FIG_H, FIG_H, "atencion-vit");
+ROWS.forEach(([es, en], i) => {
+  s.addText(
+    [
+      { text: es, options: { bold: true, fontSize: 15, color: C.text1, breakLine: true } },
+      { text: `(${en})`, options: { fontSize: 11, color: C.accent5 } },
+    ],
+    { x: 0.35, y: FIG_Y + i * ROW_H, w: 1.35, h: ROW_H, valign: "middle", margin: 0, isTextBox: true, objectName: `fila-${i + 1}` }
+  );
+});
+s.addText("Grad-CAM de DenseNet, ResNet y el híbrido (columna 1: radiografía original)", { x: 1.75, y: 6.1, w: 6.2, h: 0.4, fontSize: 12, color: C.accent5, align: "center", margin: 0, isTextBox: true });
+s.addText("ViT: atención del último bloque y rollout", { x: 8.15, y: 6.1, w: FIG_H, h: 0.4, fontSize: 12, color: C.accent5, align: "center", margin: 0, isTextBox: true });
 s.addNotes(GUIDE_NOTES[noteIdx++] || 
   "En el derrame pleural, con probabilidades altas, las CNN miran la región torácica correcta. En la infiltración, con probabilidades bajas, los mapas se van a los bordes de la imagen, a la marca de texto 'PORTABLE' o fuera de los pulmones: señal de posibles atajos, un problema conocido en este dataset. Para el ViT, la atención del último bloque sí recorre los campos pulmonares, mientras que el rollout se concentra en las esquinas, un artefacto conocido. Son ejemplos cualitativos, no una medida de localización."
 );
