@@ -1,6 +1,6 @@
 # Guion de la presentación, preguntas probables y glosario
 
-**Revisión:** 10 minutos = **5–6 min de exposición** + 3–4 min de preguntas y revisión de código. Ritmo objetivo: ~140 palabras por minuto. Todas las cifras salen de `results/metrics.json`.
+**Revisión:** 10 minutos = **5–6 min de exposición** + 3–4 min de preguntas y revisión de código. Ritmo objetivo: ~140 palabras por minuto. Todas las cifras salen de `results/metrics.json` (12k, principal) y `results/full_112k/metrics.json` (112k, complementario).
 
 **Cómo leer las referencias de código:**
 - **In [n]** es el número que Jupyter y GitHub muestran a la izquierda de cada celda del notebook `ChestXray14_Model_Comparison.ipynb`. Las líneas se cuentan dentro de esa celda; en Jupyter se activan con `Shift+L` y en VS Code se ven siempre.
@@ -15,7 +15,7 @@ Las frases en *cursiva* son definiciones breves para decir en voz alta la primer
 ### 1. Portada (0:00–0:20)
 Buenas tardes. Soy Alfredo Gallegos López. Mi proyecto compara cuatro arquitecturas de deep learning para detectar hallazgos en radiografías de tórax. La pregunta es simple: en este problema, ¿conviene una red convolucional, un Transformer o un híbrido de ambos?
 
-### 2. El problema (0:20–1:00)
+### 2. El problema (0:20–0:55)
 Usé NIH ChestX-ray14: 112 mil radiografías de unos 30 mil pacientes, con 14 hallazgos. Tiene tres dificultades:
 - Es **multi-etiqueta**: *una misma imagen puede tener varios hallazgos a la vez*.
 - Las etiquetas se extrajeron automáticamente de los reportes, así que tienen ruido.
@@ -23,7 +23,7 @@ Usé NIH ChestX-ray14: 112 mil radiografías de unos 30 mil pacientes, con 14 ha
 
 Por eso la exactitud no sirve para comparar, y la métrica principal es el **AUROC**: *la probabilidad de que el modelo le dé una puntuación más alta a una radiografía con el hallazgo que a una sin él; 0.5 es azar y 1 es perfecto*.
 
-### 3. Metodología (1:00–2:00)
+### 3. Metodología (0:55–1:50)
 Los cuatro modelos siguen exactamente el mismo protocolo. Tomé 12 mil imágenes y las separé **por paciente**: 70% entrenamiento, 15% validación y 15% prueba, sin que un paciente aparezca en dos conjuntos; si no, el modelo se evaluaría sobre pacientes que ya vio.
 
 Comparo dos **CNN**, *redes que analizan la imagen con filtros locales*: DenseNet121, la base de CheXNet, y ResNet18. Un **Transformer** puro, ViT-B/16, *que divide la imagen en parches y relaciona todos entre sí con atención*. Y un **híbrido**, MaxViT-T, que combina ambas cosas.
@@ -32,33 +32,36 @@ Hice **fine-tuning parcial**: *parto de pesos ya entrenados en ImageNet y ajusto
 
 Para evaluar uso AUROC, **F1**, *que balancea aciertos y falsas alarmas*, con un umbral por clase elegido en validación, exactitud e **intervalos de confianza**, *el rango donde probablemente está el valor real*. Y como variante, un **ensemble**: *el promedio de las predicciones de los cuatro modelos*.
 
-### 4. Resultados (2:00–2:55)
+### 4. Resultados (1:50–2:40)
 Este es el resultado central. Los cuatro modelos individuales quedan entre 0.733 y 0.749 de AUROC, y **ninguna diferencia entre ellos es estadísticamente significativa**. Además, repetí el experimento y el orden cambió: en la corrida anterior ResNet18 parecía mejor que DenseNet con significancia, y en esta ya no. Con este presupuesto, ninguna arquitectura domina.
 
 Lo que sí mejora es el **ensemble**: 0.767 de AUROC, significativamente mejor que cada modelo por separado.
 
 Y noten la columna de exactitud: 0.950 para todos, exactamente lo mismo que un modelo que siempre dice "sano". Por eso no la uso para comparar.
 
-### 5. Ensemble e híbrido (2:55–3:40)
+### 5. Ensemble e híbrido (2:40–3:20)
 ¿Por qué funciona el ensemble? Porque CNN, Transformer e híbrido cometen errores distintos, y al promediarlos se compensan. Su costo es correr los cuatro modelos.
 
 ¿Y el híbrido? Quedó con el AUROC más bajo, pero la curva lo explica: es el único cuya **pérdida de validación**, *el error en datos que no usó para entrenar*, seguía bajando en la quinta época. No llegó a converger. En la literatura los híbridos son los mejores en este dataset, pero con entrenamiento completo.
 
 En el extremo opuesto, ResNet18, que ajusta el 75% de su red, **se sobreajusta** desde la época 3: *memoriza el entrenamiento y empeora en datos nuevos*. Por eso uso los pesos de la mejor época.
 
-### 6. AUROC por hallazgo (3:40–4:10)
-Por hallazgo, la dificultad pesa más que la arquitectura. Enfisema, edema y derrame superan 0.8 en todos los modelos. Nódulos, infiltración y neumonía quedan por debajo de 0.7 en todos: son lesiones pequeñas o con etiquetas ambiguas. El límite parece estar en los datos y la resolución, no en el modelo.
+### 6. Dataset completo: 112k imágenes (3:20–3:55)
+Después repetí todo con el dataset completo, 112 mil imágenes. Para que la computadora no se apagara, lo corrí en **modo de bajo consumo**: *la GPU descansa la mitad del tiempo, sin cambiar el entrenamiento*. Resultado: todos mejoran unos 0.05 de AUROC, y el híbrido es el que más gana, +0.057, y ahora sí converge: le faltaban datos. El ensemble sigue siendo el mejor, con 0.813, cerca de CheXNet. Y con un conjunto de prueba nueve veces mayor, ResNet18 ya es significativamente el mejor modelo individual, aunque por menos de 0.01. Las conclusiones se sostienen.
 
-### 7. Costo computacional (4:10–4:45)
+### 7. AUROC por hallazgo (3:55–4:10)
+Por hallazgo, la dificultad pesa más que la arquitectura: enfisema, edema y derrame superan 0.8 en todos los modelos, y nódulos, infiltración y neumonía quedan por debajo de 0.7, por ser lesiones pequeñas o con etiquetas ambiguas.
+
+### 8. Costo computacional (4:10–4:40)
 Donde sí hay diferencias es en el costo. ViT-B/16 tiene 86 millones de parámetros, doce veces DenseNet. ViT y MaxViT son unas 13 veces más lentos que ResNet18 en **inferencia**, *el tiempo para clasificar imágenes nuevas*, y usan más del doble de memoria, sin rendir más. Entre los modelos individuales, **ResNet18 es el mejor compromiso**.
 
-### 8. Interpretabilidad (4:45–5:20)
+### 9. Interpretabilidad (4:40–5:15)
 Con **Grad-CAM**, *que colorea las zonas de la imagen que más influyeron en la predicción*, y con mapas de atención vemos dónde mira cada modelo. En el derrame pleural, con probabilidad alta, las CNN miran la región correcta. Pero en la infiltración, los mapas se van a los bordes, a la marca de texto "PORTABLE" o fuera de los pulmones. Eso indica posibles **atajos**: *el modelo usa pistas que no son clínicas*. Un buen AUROC no garantiza que use los signos correctos.
 
-### 9. Conclusiones (5:20–5:55)
-En resumen: con el mismo presupuesto, CNN, Transformer e híbrido rinden igual; la diferencia real está en el costo, donde ResNet18 es el más eficiente. Combinar los modelos sí mejora el desempeño. Y metodológicamente, evaluar por paciente, con umbrales en validación, intervalos de confianza y repitiendo el experimento, fue lo que evitó conclusiones engañosas.
+### 10. Conclusiones (5:15–5:50)
+En resumen: con el mismo presupuesto, CNN, Transformer e híbrido rinden casi igual; con el dataset completo todos mejoran y ResNet18 gana por muy poco. La diferencia real está en el costo, donde ResNet18 es el más eficiente. Combinar los modelos sí mejora el desempeño, con 12k y con 112k. Y metodológicamente, evaluar por paciente, con umbrales en validación, intervalos de confianza y repitiendo el experimento, fue lo que evitó conclusiones engañosas.
 
-Como trabajo futuro: usar las 112 mil imágenes con fine-tuning completo, preentrenamiento auto-supervisado y modelos multimodales con datos clínicos. Gracias.
+Como trabajo futuro: fine-tuning completo y más épocas, preentrenamiento auto-supervisado y modelos multimodales con datos clínicos. Gracias.
 
 ---
 
@@ -69,12 +72,14 @@ Cada respuesta indica **dónde está la evidencia**, para mostrarla si te la pid
 ### A. Decisiones del proyecto
 
 **1. ¿Por qué 12k imágenes y no las 112k?**
-Por presupuesto de cómputo y tiempo. Además, intenté la corrida completa y la PC se apagó sola bajo carga sostenida de la GPU. El código para las 112k está listo y es reanudable. Lo importante es que los cuatro modelos usan exactamente los mismos datos, así que la comparación es justa; lo que cambia es el valor absoluto del AUROC.
+Los resultados principales usan 12k por presupuesto de cómputo y tiempo, y porque la PC se apagaba bajo carga sostenida de la GPU. Pero **también lo corrí con las 112k**, en modo de bajo consumo: todos mejoran unos 0.05 de AUROC y las conclusiones se sostienen (ensemble arriba, ResNet18 el más eficiente, el híbrido el que más gana con datos). En ambas corridas, los cuatro modelos usan exactamente los mismos datos, así que la comparación es justa.
 - `ChestXray14_Model_Comparison.ipynb`, **In [1], línea 45**: `N_SAMPLES = 12000`
 - **In [3], línea 8**: `df_sample = df_labels.sample(n=min(N_SAMPLES, len(df_labels)), random_state=SEED)`, el muestreo con semilla fija.
-- `ChestXray14_Model_Comparison_112k.ipynb`: la versión con `N_SAMPLES = 112120`.
-- `HISTORIAL.md`, línea 193: el registro de los apagados.
-- `paper/paper.tex`, línea 305: Limitaciones.
+- `ChestXray14_112k_bajo_consumo.ipynb`, **In [1], línea 46**: `N_SAMPLES = 112120`, la corrida completa.
+- `results/full_112k/metrics.json`, línea 3: `"n_samples": 112120`.
+- `CORRIDA_112K.md`: tabla comparativa entre 12k y 112k.
+- `HISTORIAL.md`, línea 214: el registro de los apagados.
+- `paper/paper.tex`, línea 330: Limitaciones.
 
 **2. ¿Por qué estos modelos?**
 Cubren los tres enfoques que pide el proyecto. DenseNet121 es la referencia del área (CheXNet). ResNet18 es una CNN ligera para contrastar costo. ViT-B/16 es el Transformer puro estándar. MaxViT-T es un híbrido CNN+Transformer con pesos de ImageNet en torchvision, lo que permite el mismo protocolo.
@@ -116,7 +121,7 @@ Porque un paciente tiene varias radiografías. Si una cae en entrenamiento y otr
 **6. ¿El volteo horizontal es adecuado en radiografías?**
 Es una limitación que reconozco. Invierte la lateralidad anatómica (por ejemplo, la posición del corazón), lo que podría afectar a hallazgos como Cardiomegaly. Lo mantuve como único aumento por simplicidad y para que fuera igual en todos los modelos.
 - **In [6], línea 5**: `transforms.RandomHorizontalFlip()`, solo en `train_transform`.
-- `paper/paper.tex`, línea 305: Limitaciones.
+- `paper/paper.tex`, línea 330: Limitaciones.
 
 ### B. Métricas
 
@@ -145,7 +150,8 @@ Remuestreé el conjunto de prueba 1000 veces (bootstrap) con los mismos índices
 - `results/metrics.json`, línea 409: `"pairwise_bootstrap"`, con todas las comparaciones.
 
 **11. ¿Por qué sus AUROC (0.73–0.77) son menores que los de CheXNet (≈0.84)?**
-CheXNet usó las 112k imágenes, fine-tuning de toda la red y más épocas. Mi objetivo no era superar el estado del arte, sino comparar arquitecturas en igualdad de condiciones.
+CheXNet usó las 112k imágenes, fine-tuning de toda la red y más épocas. Con las 112k y solo fine-tuning parcial, mi ensemble llega a 0.813, cerca de CheXNet. Mi objetivo no era superar el estado del arte, sino comparar arquitecturas en igualdad de condiciones.
+- `results/full_112k/metrics.json`, línea 658: `"auroc_macro": 0.8135` del ensemble con 112k.
 - `paper/paper.tex`, línea 59 (CheXNet en el Estado del arte) y la Discusión, párrafo "La dificultad depende del hallazgo".
 
 ### C. Resultados
@@ -155,14 +161,14 @@ No convergió. Es el único modelo cuya pérdida de validación seguía bajando 
 - `results/metrics.json`, línea 382: `"best_epoch": 5`, la última época.
 - `results/metrics.json`, línea 400: `"val_loss_history"` de MaxViT (0.1845 → 0.1748, siempre bajando).
 - **In [9], líneas 77–79**: cómo se elige la mejor época (`if val_loss < best_val_loss`).
-- `results/val_loss_curves.png` (curva amarilla) y `paper/paper.tex`, línea 290.
+- `results/val_loss_curves.png` (curva amarilla) y `paper/paper.tex`, línea 315.
 
 **13. ¿Por qué funciona el ensemble?**
 Porque los modelos cometen errores distintos: CNN, Transformer e híbrido aprenden representaciones diferentes. Al promediar sus probabilidades, los errores se compensan. Mejora el AUROC entre +0.018 y +0.034 respecto a cada modelo, con significancia. El costo es correr los cuatro, unas 30 veces más lento que ResNet18 solo.
 - **In [12], líneas 73–75**: `test_probs["ensemble"] = np.mean([test_probs[n] for n in MODEL_NAMES], axis=0)`, con su propio umbral.
 - `results/metrics.json`, línea 652: `"auroc_macro": 0.7672` del ensemble.
 - `results/metrics.json`, línea 482: `"densenet121 - ensemble | auroc_macro"`, un ejemplo de comparación significativa.
-- `paper/paper.tex`, línea 292.
+- `paper/paper.tex`, línea 317.
 
 **14. ¿Por qué ResNet18 se sobreajusta?**
 Porque el fine-tuning le ajusta el 75% de la red: aprende rápido y memoriza. Su pérdida de validación sube desde la época 3. Por eso evalúo con los pesos de la mejor época, elegida en validación.
@@ -174,10 +180,11 @@ Para uso práctico, ResNet18: mismo desempeño y el menor costo. Si se busca el 
 - `results/metrics.json`, línea 229: `"inference_imgs_per_sec": 4754` de ResNet18, contra 360 del ViT (línea 310) y 373 de MaxViT (línea 392).
 
 **16. ¿Cómo sabes que los resultados son confiables, si cambió el orden entre corridas?**
-Justamente por eso no afirmo que un modelo individual sea mejor que otro: las diferencias entre ellos están dentro de la variación entre corridas (~0.01 de AUROC). Lo que sí es robusto es la ventaja del ensemble, significativa frente a todos.
+Con 12k, las diferencias entre modelos individuales están dentro de la variación entre corridas (~0.01 de AUROC), así que no afirmo que uno sea mejor. Con 112k, el conjunto de prueba es nueve veces mayor, los intervalos se estrechan a ±0.007 y ResNet18 resulta significativamente el mejor, pero por menos de 0.01. Lo robusto en ambos casos es la ventaja del ensemble.
+- `results/full_112k/metrics.json`, línea 416: `"densenet121 - resnet18 | auroc_macro"`, significativa con 112k.
 - `results/subset_12k/metrics.json`, líneas 328–334: en la corrida anterior, DenseNet vs ResNet era `"significativa": true`.
 - `results/metrics.json`, línea 410: la misma comparación en la corrida actual, no significativa.
-- `results/subset_12k/README.md`, tabla y línea 17; `paper/paper.tex`, línea 225 (Reproducibilidad entre corridas).
+- `results/subset_12k/README.md`, tabla y línea 17; `paper/paper.tex`, línea 225 (Reproducibilidad entre corridas) y línea 228 (Efecto del tamaño del conjunto de datos).
 
 **17. ¿Por qué el tiempo por época se parece entre modelos, si ResNet18 es mucho más rápido?**
 En las CNN, el tiempo por época lo domina la lectura y decodificación de las imágenes de 1024 px, no la GPU. Por eso, para comparar el costo de cómputo, uso la velocidad de inferencia medida solo en la GPU.
@@ -190,7 +197,7 @@ En las CNN, el tiempo por época lo domina la lectura y decodificación de las i
 No: son cualitativos y muestran ambos casos. En el derrame, el modelo mira la región correcta; en la infiltración, mira bordes y la marca "PORTABLE", lo que sugiere atajos. Es un problema conocido en este dataset (Zech 2018). Evaluarlo cuantitativamente con las cajas delimitadoras del dataset queda como trabajo futuro.
 - **In [15], líneas 32–36**: la capa objetivo de Grad-CAM de cada modelo.
 - **In [15], línea 50**: `targets=[ClassifierOutputTarget(ex["cls"])]`, que explica la clase **real**, no la predicha.
-- `results/gradcam_examples.png` y `paper/paper.tex`, línea 265.
+- `results/gradcam_examples.png` y `paper/paper.tex`, línea 290.
 
 **19. ¿Por qué el attention rollout del ViT se concentra en las esquinas?**
 Es un artefacto conocido de los mapas de atención: algunos tokens de fondo acumulan atención. Por eso muestro también la atención del último bloque, que sí recorre los campos pulmonares, y los interpreto con cautela.
@@ -207,7 +214,7 @@ Una GPU AMD Radeon RX 6800 XT con PyTorch y ROCm. La PC se apagó sola varias ve
 - **In [9], líneas 38–42**: `save_checkpoint`, con escritura atómica.
 - **In [9], líneas 53–61**: la reanudación desde el checkpoint.
 - **In [9], líneas 84–89**: el guardado al final de cada época.
-- `HISTORIAL.md`, línea 193.
+- `HISTORIAL.md`, línea 214.
 
 **21. ¿Por qué hay una nota sobre la memoria del ViT?**
 Al reanudar el ViT tras un apagado, el código cargó en la GPU una copia extra de los pesos e infló la memoria medida (1,635 MB). Lo corregí y reporto la medición limpia, 980 MB, idéntica en dos corridas independientes.
@@ -228,13 +235,34 @@ El experimento está en el notebook. Se ejecuta en Jupyter o desde la terminal c
 - `chestxray_data.py`, línea 39: `class ChestXray14Dataset`, importada en **In [5]**.
 
 **24. ¿Qué harías con más tiempo?**
-- Usar las 112k imágenes con fine-tuning completo y varias semillas.
+- Fine-tuning completo con más épocas sobre las 112k imágenes y varias semillas.
 - Hacer preentrenamiento auto-supervisado sobre radiografías sin etiquetar, lo que ayudaría sobre todo a los Transformers.
 - Probar multimodalidad: edad, sexo, tipo de proyección y texto del reporte; esas columnas ya vienen en el CSV.
 
 Evidencia:
-- `paper/paper.tex`, Conclusiones (línea 308 en adelante, párrafo "Como trabajo futuro").
+- `paper/paper.tex`, Conclusiones (línea 333 en adelante, párrafo "Como trabajo futuro").
 - **In [2]**: la salida de `df_labels.head()` muestra las columnas `Patient Age`, `Patient Gender` y `View Position`.
+
+**25. ¿Cómo evitaste que la PC se apagara en la corrida de 112k? ¿Eso cambia los resultados?**
+Con un modo de bajo consumo:
+- después de cada lote, la GPU descansa lo mismo que tardó en calcularlo, así que trabaja ~50% del tiempo;
+- hay pausas de enfriamiento de 60 s entre épocas y de 3 min entre modelos;
+- uso menos procesos de lectura y prioridad baja.
+
+Duró 3 h 45 min sin ningún apagado. No cambia los resultados: el entrenamiento es idéntico, solo cambia el ritmo. Las pausas se excluyen del tiempo por época que se reporta.
+
+Evidencia:
+- `ChestXray14_112k_bajo_consumo.ipynb`, **In [1], líneas 55–57**: `GPU_DUTY_SLEEP = 1.0` y los tiempos de enfriamiento.
+- **In [9], líneas 18–21**: la pausa después de cada lote (`time.sleep(pause)`).
+- **In [9], línea 77**: `epoch_time = time.time() - t0 - slept_train - slept_val`, que excluye las pausas del tiempo medido.
+- **In [10], líneas 16–18**: el enfriamiento entre modelos.
+- `results/full_112k/metrics.json`, línea 16: `"low_power"`, la configuración registrada.
+
+**26. ¿Qué cambia entre 12k y 112k?**
+Todos mejoran entre +0.046 y +0.057 de AUROC. MaxViT-T es el que más gana y pasa a converger (mejor época 5 → 4). El ensemble sube de 0.767 a 0.813. La exactitud sigue igual a la del clasificador trivial, y el costo de inferencia y de memoria no cambia.
+- `CORRIDA_112K.md`, tabla de resultados.
+- `results/full_112k/metrics.json`, línea 388: `"best_epoch": 4` de MaxViT.
+- `results/full_112k/val_loss_curves.png` y `results/full_112k/auroc_per_class.png`.
 
 ### F. Mapa rápido para la revisión de código
 
@@ -305,6 +333,8 @@ Evidencia:
 | **Throughput** | Imágenes procesadas por segundo. |
 | **Memoria pico de GPU** | Máximo de memoria de la tarjeta gráfica usada durante el entrenamiento. |
 | **Checkpoint** | Copia guardada del estado del entrenamiento para poder reanudarlo. |
+| **Modo de bajo consumo** (*duty cycle*) | La GPU alterna trabajo y descanso (aquí ~50/50) para bajar consumo y temperatura; el entrenamiento es idéntico, solo más lento. |
+| **Caché de imágenes** | Copia de las radiografías ya redimensionadas (256 px), para no decodificar las de 1024 px en cada época. |
 | **ROCm** | Plataforma de AMD equivalente a CUDA de NVIDIA, para usar su GPU con PyTorch. |
 | **Generalización** | Qué tan bien funciona el modelo con datos nuevos (otros pacientes, hospitales o equipos). |
 | **Self-supervised learning** | Preentrenar con imágenes sin etiquetas, aprendiendo de la propia estructura de los datos. |

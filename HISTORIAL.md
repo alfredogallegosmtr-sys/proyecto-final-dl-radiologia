@@ -2,7 +2,7 @@
 
 Bitácora de lo que se ha hecho, por qué, qué se corrigió y qué falta. Complementa a [`PLAN.md`](PLAN.md) (las decisiones originales y su justificación) y al [`README.md`](README.md) (cómo correr todo). Si algo de aquí contradice a `PLAN.md`, **este archivo es lo más reciente**.
 
-Última actualización: jueves 15 de octubre de 2026, ~3:50am (CDMX). Entrega: **hoy, 4–9pm**.
+Última actualización: jueves 15 de octubre de 2026, ~9:15am (CDMX). Entrega: **hoy, 4–9pm**.
 
 ---
 
@@ -13,9 +13,9 @@ Bitácora de lo que se ha hecho, por qué, qué se corrigió y qué falta. Compl
 | Notebook principal (`ChestXray14_Model_Comparison.ipynb`) | ✅ Ejecutado con 12k imágenes: **4 modelos (DenseNet121, ResNet18, ViT-B/16, MaxViT-T híbrido) + ensemble** (corrida 4) |
 | Resultados principales | ✅ `results/` (corrida 4) |
 | Repetición previa (3 modelos) | ✅ `results/subset_12k/` (corrida 2), usada para medir variabilidad entre corridas |
-| Resultados con dataset completo (112k) | ⏸️ **Pospuesto** (P3): la PC se apaga sola bajo carga sostenida de la GPU. Código listo en `ChestXray14_Model_Comparison_112k.ipynb` (reanudable) |
-| Paper IEEE | ✅ `paper/paper.tex` → `paper/paper_IEEE.pdf` (8 páginas, 22 referencias, sin pendientes). Paquete para Overleaf: `paper/overleaf_upload.zip` |
-| Slides | ✅ `slides/presentacion_final.pptx` (9 diapositivas, con notas del orador) y `slides/presentacion_final.pdf` |
+| Resultados con dataset completo (112k) | ✅ **Corrida 5** completa en modo de bajo consumo (sin apagados): `results/full_112k/`, integrada al paper y slides como experimento complementario (ver `CORRIDA_112K.md`) |
+| Paper IEEE | ✅ `paper/paper.tex` → `paper/paper_IEEE.pdf` (9 páginas, 22 referencias, sin pendientes; incluye la sección 'Efecto del tamaño del conjunto de datos'). Paquete para Overleaf: `paper/overleaf_upload.zip` |
+| Slides | ✅ `slides/presentacion_final.pptx` (10 diapositivas, con notas del orador; la 6 compara 12k vs 112k) y `slides/presentacion_final.pdf`. Guion y Q&A: `slides/guion_presentacion.md` |
 | Lineamientos del curso | ✅ Revisados uno por uno (§10) |
 | Revisión final y ensayo | ⬜ Pendiente (ver §8) |
 
@@ -50,6 +50,8 @@ Bitácora de lo que se ha hecho, por qué, qué se corrigió y qué falta. Compl
 | 02:50 | Revisión contra los lineamientos del curso: faltaba **creatividad** (ensembles/híbridos) y había detalles de texto (balanceo, exactitud en tabla, tiempo total, SSL/multimodalidad, generalización, arquitecturas más comunes). Decisión (del usuario): agregar **MaxViT-T (híbrido) + ensemble**. |
 | 03:04–03:35 | **Corrida 4** (12k, 4 modelos + ensemble, con checkpoints). **4º apagado** a las ~03:14 durante el ViT; se reanudó desde el checkpoint y terminó (`OK`). |
 | 03:35–03:50 | Detectado y corregido un error de medición: la memoria pico del ViT salió inflada (1,635 MB) porque al reanudar se cargó en la GPU la copia de los mejores pesos; se reporta la medición limpia (980 MB, idéntica en dos corridas independientes) y se corrigió el código. Paper y slides actualizados (título con híbrido, autor "Alfredo Gallegos López"). |
+| 04:47–08:32 | **Corrida 5** (112k, 4 modelos + ensemble) con `ChestXray14_112k_bajo_consumo.ipynb`: GPU al ~50% (pausa tras cada lote igual a su tiempo de cómputo), enfriamiento entre épocas/modelos, 2 workers, prioridad baja. **3 h 45 min sin ningún apagado** (`OK`). |
+| ~09:00 | Decisión (del usuario): integrar la corrida de 112k como experimento complementario en paper, slides, guion, README e HISTORIAL. |
 
 ---
 
@@ -124,6 +126,22 @@ Test: 1,802 imágenes / 1,166 pacientes (mismo split que la corrida 2). Terminó
 - **MaxViT-T no convergió:** su pérdida de validación seguía bajando en la época 5 y tiene la pérdida de entrenamiento más alta (0.162). ResNet18 se sobreajusta desde la época 3.
 - **Reproducibilidad:** comparada con la corrida 2, el orden de los modelos individuales cambió (variaciones de hasta 0.010 de AUROC).
 
+### Experimento complementario — corrida 5: dataset completo, 112k imágenes (`results/full_112k/`)
+Prueba: 16,822 imágenes / 4,747 pacientes. Modo de bajo consumo; sin interrupciones.
+
+| Modelo | AUROC 12k | AUROC 112k [IC95] | Cambio | Mejor época (12k → 112k) |
+|---|---|---|---|---|
+| DenseNet121 | 0.745 | 0.792 [0.785, 0.799] | +0.046 | 3 → 2 |
+| ResNet18 | 0.749 | **0.799** [0.792, 0.806] | +0.050 | 2 → 2 |
+| ViT-B/16 | 0.742 | 0.793 [0.787, 0.799] | +0.051 | 3 → 2 |
+| MaxViT-T | 0.733 | 0.790 [0.783, 0.797] | **+0.057** | 5 → 4 |
+| **Ensemble** | 0.767 | **0.813** [0.807, 0.820] | +0.046 | – |
+
+- Todos mejoran ~0.05; el híbrido es el que más gana y pasa a converger.
+- El ensemble supera significativamente a cada modelo (+0.015 a +0.023).
+- Con la prueba 9× mayor (IC ±0.007), ResNet18 es significativamente el mejor individual (+0.006 a +0.009); DenseNet121, ViT-B/16 y MaxViT-T siguen sin diferencias significativas entre sí.
+- Exactitud ≈0.948 = clasificador trivial (0.9475). Costo igual que en 12k; memoria del ViT limpia (980 MB, sin reanudaciones).
+
 ### Repetición previa — corrida 2: 12k imágenes, 3 modelos (`results/subset_12k/`)
 Mismo split. Terminó completa y sin interrupciones.
 
@@ -154,7 +172,10 @@ Accuracy ≈ 0.945 para los 3; F1 macro@0.5: DenseNet 0.034, ResNet 0.083, ViT 0
 |---|---|
 | `ChestXray14_Model_Comparison.ipynb` | Notebook principal (ejecutado, 12k imágenes, 4 modelos + ensemble) |
 | `results/predictions.npz` | Probabilidades de validación y prueba de cada modelo y del ensemble (para recalcular métricas sin reentrenar) |
-| `ChestXray14_Model_Comparison_112k.ipynb` | Versión lista para el dataset completo (caché 256px, checkpoints, resultados en `results/full_112k/`); **sin ejecutar** |
+| `ChestXray14_112k_bajo_consumo.ipynb` | Corrida 5 (ejecutada): dataset completo, 4 modelos + ensemble, modo de bajo consumo |
+| `correr_112k.bat` / `estado_112k.py` / `CORRIDA_112K.md` | Lanzar/reanudar la corrida de 112k / ver su avance / descripción y resultados |
+| `results/full_112k/` | Resultados de la corrida 5 (métricas, predicciones, figuras) |
+| `ChestXray14_Model_Comparison_112k.ipynb` | Versión anterior para el dataset completo (3 modelos, sin bajo consumo); **sin ejecutar**, reemplazada por la de bajo consumo |
 | `chestxray_data.py` | Clase Dataset + funciones de la caché (tienen que estar fuera del notebook por Windows) |
 | `run_notebook.py` | Ejecuta un notebook sin abrir Jupyter: `python run_notebook.py [notebook] [kernel]` |
 | `results/metrics.json` | **Fuente única de verdad** para paper y slides |
@@ -162,7 +183,7 @@ Accuracy ≈ 0.945 para los 3; F1 macro@0.5: DenseNet 0.034, ResNet 0.083, ViT 0
 | `results/subset_12k/` | Repetición previa con 3 modelos (corrida 2): métricas, figuras, notebook ejecutado |
 | `paper/paper.tex` / `paper/paper_IEEE.pdf` | Paper (IEEE Conference, español) y su PDF compilado con MiKTeX |
 | `paper/overleaf_upload.zip` | `paper.tex` + figuras en `figures/`, listo para subir a Overleaf |
-| `slides/presentacion_final.pptx` / `.pdf` | Presentación (9 diapositivas, con notas del orador) |
+| `slides/presentacion_final.pptx` / `.pdf` | Presentación (10 diapositivas, con notas del orador) |
 | `slides/build_deck.js` | Generador de la presentación desde `results/metrics.json` |
 | `PLAN.md` / `README.md` / `HISTORIAL.md` | Plan original / cómo correr / este historial |
 
@@ -183,7 +204,7 @@ Fuera del repo (no se suben): `archive.zip` (42GB, en la raíz del repo pero ign
 6. Revisar que las cifras del paper y las slides coincidan con `results/metrics.json` (se generaron de ahí, pero conviene una lectura final).
 
 ### 🟢 P3 — Opcional (solo si sobra tiempo)
-7. **Reintentar la corrida de 112k bajando la carga de la GPU**: límite de potencia en AMD Adrenalin (-15% o más), y/o batch más chico con pausas entre lotes desde el código. Comando: `python run_notebook.py ChestXray14_Model_Comparison_112k.ipynb chestxray-rocm` (con el Python de `.venv-rocm`); es reanudable con `checkpoints/`. Si termina, se puede agregar al paper como experimento complementario (efecto del tamaño del dataset).
+7. ~~Reintentar la corrida de 112k bajando la carga de la GPU~~ **Hecho** (corrida 5, modo de bajo consumo). Texto original: límite de potencia en AMD Adrenalin (-15% o más), y/o batch más chico con pausas entre lotes desde el código. Comando: `python run_notebook.py ChestXray14_Model_Comparison_112k.ipynb chestxray-rocm` (con el Python de `.venv-rocm`); es reanudable con `checkpoints/`. Si termina, se puede agregar al paper como experimento complementario (efecto del tamaño del dataset).
 8. Borrar `ProyectoFinal/archive/` e `images_subset/` para liberar espacio (~46GB).
 
 ---
@@ -191,6 +212,7 @@ Fuera del repo (no se suben): `archive.zip` (42GB, en la raíz del repo pero ign
 ## 9. Lecciones / notas para quien retome
 
 - **La PC se apaga sola bajo carga sostenida de GPU** (4 veces: 00:53, ~01:55, ~02:21 y ~03:14; sin pantalla azul ni minidump, evento 6008). Los checkpoints por época hicieron que el 4º apagado solo costara la época en curso. Sospechas: energía/temperatura o cuelgue del driver ROCm nightly (sin soporte oficial para la RX 6800 XT en Windows). Las corridas con menor carga (pilotos, corrida de 12k limitada por la lectura de imágenes) sí terminaron; con la caché de 256px la GPU trabaja al 100% sin pausas y se apaga antes. Revisar temperaturas/fuente de poder antes de otra corrida larga.
+- **El modo de bajo consumo resolvió los apagados:** con la GPU al ~50% (pausa tras cada lote igual a su tiempo de cómputo) y pausas de enfriamiento, la corrida de 112k duró 3 h 45 min sin ningún apagado, frente a 4 apagados a máxima potencia.
 - Correr ejecuciones largas como **proceso independiente** (`Start-Process`) y no ligado a la sesión.
 - Antes de una corrida larga, siempre **piloto** con `N_SAMPLES = 300`, `EPOCHS = 1` (≈2 min), con carpetas de resultados y checkpoints **separadas** de las reales.
 - Los resultados del piloto **sobrescriben** `results/`: no hacer commit de `results/` hasta que termine la corrida real (se puede restaurar con `git checkout -- results/`).
@@ -218,4 +240,4 @@ Fuera del repo (no se suben): `archive.zip` (42GB, en la raíz del repo pero ign
 | Creatividad: ensembles, híbridos | MaxViT-T (híbrido) + ensemble de los 4 modelos |
 | Artículo IEEE Conference con las 5 secciones | `paper/paper_IEEE.pdf` |
 | Código reproducible con instrucciones | Repo público en GitHub + `README.md` + `run_notebook.py` |
-| Presentación con tablas de métricas, gráficas de costo e interpretabilidad (5–6 min) | `slides/presentacion_final.pptx` (9 diapositivas, notas del orador) |
+| Presentación con tablas de métricas, gráficas de costo e interpretabilidad (5–6 min) | `slides/presentacion_final.pptx` (10 diapositivas, notas del orador) |

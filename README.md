@@ -15,6 +15,11 @@ Comparación de cuatro modelos de deep learning para la clasificación multi-eti
 - ResNet18 es el mejor compromiso entre desempeño y costo.
 - El híbrido no llegó a converger en 5 épocas.
 
+**Experimento complementario con el dataset completo** (112,120 imágenes, ver [`CORRIDA_112K.md`](CORRIDA_112K.md)):
+- Todos los modelos mejoran unos +0.05 de AUROC; el híbrido es el que más gana (+0.057) y pasa a converger.
+- El ensemble sigue siendo el mejor (AUROC 0.813).
+- Con 9× más datos de prueba, ResNet18 resulta significativamente el mejor modelo individual, por un margen pequeño (0.799).
+
 Detalle completo: [`paper/paper_IEEE.pdf`](paper/paper_IEEE.pdf). Contexto y decisiones: [`PLAN.md`](PLAN.md) (plan original) y [`HISTORIAL.md`](HISTORIAL.md) (bitácora actualizada).
 
 ## Estructura
@@ -22,10 +27,14 @@ Detalle completo: [`paper/paper_IEEE.pdf`](paper/paper_IEEE.pdf). Contexto y dec
 ```
 ChestXray14_Model_Comparison.ipynb       # notebook principal (ejecutado): datos, 4 modelos + ensemble, entrenamiento, evaluación, interpretabilidad
 chestxray_data.py                        # clase Dataset y funciones de caché (importadas por los notebooks)
-ChestXray14_Model_Comparison_112k.ipynb  # versión para el dataset completo (caché 256px, checkpoints); sin ejecutar
+ChestXray14_112k_bajo_consumo.ipynb      # experimento complementario (ejecutado): dataset completo, 4 modelos + ensemble, modo de bajo consumo
+correr_112k.bat / estado_112k.py         # lanzar o reanudar la corrida de 112k / ver su avance
+CORRIDA_112K.md                          # qué es la corrida de 112k, cómo correrla y sus resultados
+ChestXray14_Model_Comparison_112k.ipynb  # versión anterior para el dataset completo (3 modelos); sin ejecutar, reemplazada por la de bajo consumo
 run_notebook.py                          # ejecuta un notebook sin abrir Jupyter (reanudable con checkpoints/)
 results/                                 # metrics.json, predictions.npz y figuras de la corrida principal
   subset_12k/                            # repetición previa e independiente (3 modelos), para medir variabilidad entre corridas
+  full_112k/                             # resultados del experimento con el dataset completo
 paper/                                   # paper IEEE: paper.tex, paper_IEEE.pdf y overleaf_upload.zip (para subirlo a Overleaf)
 slides/                                  # presentación (pptx + pdf, con notas del orador) y build_deck.js, que la regenera desde metrics.json
 HISTORIAL.md                             # bitácora: qué se hizo, correcciones, resultados por corrida, pendientes

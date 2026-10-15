@@ -11,6 +11,7 @@ const OUT = process.argv[3];
 const RES = path.join(REPO, "results");
 const M = JSON.parse(fs.readFileSync(path.join(RES, "metrics.json"), "utf8"));
 const PREV = JSON.parse(fs.readFileSync(path.join(RES, "subset_12k", "metrics.json"), "utf8"));
+const FULL = JSON.parse(fs.readFileSync(path.join(RES, "full_112k", "metrics.json"), "utf8")); // experimento complementario, dataset completo
 
 const NAMES = ["densenet121", "resnet18", "vit_b_16", "maxvit_t"];
 const EVAL = [...NAMES, "ensemble"];
@@ -265,6 +266,57 @@ s.addNotes(
   `Aquí está la parte exploratoria. El ensemble, que solo promedia las probabilidades, mejora a cada modelo entre ${fmt(ensGainMin, 3)} y ${fmt(ensGainMax, 3)} de AUROC, todas significativas: los modelos cometen errores distintos. Su costo es ejecutar los cuatro. El híbrido MaxViT-T quedó con el AUROC más bajo, pero la curva explica por qué: es el único cuya pérdida de validación seguía bajando en la quinta época. En la literatura los híbridos son los mejores en este dataset, pero con entrenamiento completo; con este presupuesto no alcanzó a converger.`
 );
 
+// ---------- 5b. Dataset completo (112k) ----------
+const mf = (n) => (n === "ensemble" ? FULL.ensemble : FULL.models[n]);
+const fpair = (a, b) => {
+  const d = FULL.pairwise_bootstrap[`${a} - ${b} | auroc_macro`];
+  if (d) return d;
+  const r = FULL.pairwise_bootstrap[`${b} - ${a} | auroc_macro`];
+  return { ...r, diff: -r.diff };
+};
+const fullBest = [...NAMES].sort((a, b) => mf(b).auroc_macro - mf(a).auroc_macro)[0];
+const fullBestSig = NAMES.filter((n) => n !== fullBest).every((n) => fpair(fullBest, n).significativa);
+const gains = Object.fromEntries(EVAL.map((n) => [n, mf(n).auroc_macro - m(n).auroc_macro]));
+const maxGain = [...NAMES].sort((a, b) => gains[b] - gains[a])[0];
+s = pres.addSlide({ masterName: "CONTENIDO", sectionTitle: "Resultados" });
+s.addText(`Con 112k imágenes todos mejoran ~${fmt(Math.min(...NAMES.map((n) => gains[n])), 2)}`, { placeholder: "title" });
+const hdr2 = (t) => ({ text: t, options: { bold: true, color: HEX.lt1, fill: { color: HEX.dk1 }, align: "center", valign: "middle" } });
+const rows2 = [[hdr2("Modelo"), hdr2("AUROC 12k"), hdr2("AUROC 112k [IC 95%]"), hdr2("Cambio"), hdr2("Mejor época")]];
+EVAL.forEach((n) => {
+  const isEns = n === "ensemble";
+  const fill = isEns ? { color: HEX.lt2 } : { color: HEX.lt1 };
+  const ci = mf(n).ci95.auroc_macro;
+  rows2.push([
+    { text: [{ text: "●  ", options: { color: MCOLOR[n] } }, { text: LABEL[n], options: { bold: true } }], options: { valign: "middle", fill } },
+    { text: fmt(m(n).auroc_macro), options: { align: "center", valign: "middle", fill } },
+    { text: `${fmt(mf(n).auroc_macro)}  [${fmt(ci[0])}, ${fmt(ci[1])}]`, options: { align: "center", bold: isEns || n === fullBest, valign: "middle", fill } },
+    { text: `+${fmt(gains[n])}`, options: { align: "center", bold: n === maxGain, valign: "middle", fill } },
+    { text: isEns ? "–" : `${m(n).best_epoch} → ${mf(n).best_epoch}`, options: { align: "center", valign: "middle", fill } },
+  ]);
+});
+s.addTable(rows2, { x: 0.6, y: 1.45, w: 12.1, colW: [2.5, 1.9, 3.6, 1.9, 2.2], rowH: 0.48, fontSize: 15, color: HEX.dk1, border: { type: "solid", pt: 1, color: HEX.accent6 }, objectName: "tabla-112k" });
+const cards2 = [
+  ["El híbrido es el que más gana", `${LABEL[maxGain]} +${fmt(gains[maxGain], 3)} y ahora converge (mejor época ${mf(maxGain).best_epoch}): le faltaban datos`],
+  ["El ensemble sigue arriba", `AUROC ${fmt(mf("ensemble").auroc_macro)}, significativamente mejor que cada modelo`],
+  [fullBestSig ? `${LABEL[fullBest]}, mejor individual` : "Modelos individuales", fullBestSig ? `Con 9× más datos de prueba la diferencia ya es significativa, pero pequeña (<0.01)` : "Siguen sin diferencias significativas"],
+];
+cards2.forEach(([h, d], i) => {
+  const x = 0.6 + i * 4.1;
+  card(s, x, 4.6, 3.85, 1.55, `hallazgo112k-${i}`);
+  s.addText(
+    [
+      { text: h, options: { bold: true, fontSize: 16, color: C.text1, breakLine: true } },
+      { text: d, options: { fontSize: 14, color: C.text2 } },
+    ],
+    { x: x + 0.25, y: 4.75, w: 3.4, h: 1.3, valign: "top", margin: 0, isTextBox: true, paraSpaceAfter: 6 }
+  );
+});
+s.addText(`Mismo protocolo con las ${fmtInt(FULL.config.n_samples)} imágenes (prueba: ${fmtInt(FULL.split_sizes.test.images)}); corrida en modo de bajo consumo para evitar los apagados del equipo.`,
+  { x: 0.6, y: 6.35, w: 12.1, h: 0.4, fontSize: 13, italic: true, color: C.accent5, margin: 0, isTextBox: true });
+s.addNotes(
+  `También repetí todo con el dataset completo, 112 mil imágenes. Para que la computadora no se apagara, lo corrí en modo de bajo consumo: la GPU descansa la mitad del tiempo, sin cambiar el entrenamiento. Resultado: todos mejoran unos 0.05 de AUROC, y el híbrido es el que más gana, ${fmt(gains[maxGain], 3)}, y ahora sí converge; le faltaban datos. El ensemble sigue siendo el mejor, con ${fmt(mf("ensemble").auroc_macro)}, cerca de CheXNet. Y con un conjunto de prueba nueve veces mayor, ResNet18 ya es significativamente el mejor modelo individual, aunque por menos de 0.01. Las conclusiones se sostienen.`
+);
+
 // ---------- 6. AUROC por clase ----------
 s = pres.addSlide({ masterName: "CONTENIDO", sectionTitle: "Resultados" });
 s.addText("Por hallazgo, la dificultad pesa más que la arquitectura", { placeholder: "title" });
@@ -329,8 +381,8 @@ pres.addSection({ title: "Cierre" });
 s = pres.addSlide({ masterName: "CIERRE", sectionTitle: "Cierre" });
 s.addText("Conclusiones", { placeholder: "title" });
 const concl = [
-  [MCOLOR.densenet121, "Desempeño", `CNN, Transformer e híbrido rinden igual con este presupuesto (AUROC ${fmt(m(byAuc[3]).auroc_macro, 2)}–${fmt(m(byAuc[0]).auroc_macro, 2)}); la dificultad depende más del hallazgo que de la arquitectura.`],
-  [MCOLOR.ensemble, "Ensemble e híbrido", `Combinar los cuatro mejora a todos (AUROC ${fmt(m("ensemble").auroc_macro, 3)}). El híbrido necesita más entrenamiento para mostrar su ventaja.`],
+  [MCOLOR.densenet121, "Desempeño", `Rinden casi igual (AUROC ${fmt(m(byAuc[3]).auroc_macro, 2)}–${fmt(m(byAuc[0]).auroc_macro, 2)}); con 112k todos suben ~0.05 y ResNet18 gana por <0.01.`],
+  [MCOLOR.ensemble, "Ensemble e híbrido", `Combinar los cuatro mejora a todos (AUROC ${fmt(m("ensemble").auroc_macro, 3)}). Con 112k llega a ${fmt(mf("ensemble").auroc_macro, 3)}. El híbrido es el que más gana con más datos.`],
   [MCOLOR.resnet18, "Costo", `ResNet18 es el mejor compromiso individual; ViT y MaxViT son ~${fmt(Math.min(infRatioVit, infRatioMax), 0)}× más lentos sin rendir más.`],
   [MCOLOR.vit_b_16, "Método", "Split por paciente, umbral en validación, intervalos de confianza y repetir el experimento evitaron sobreinterpretar diferencias pequeñas."],
 ];
@@ -346,12 +398,12 @@ concl.forEach(([color, h, d], i) => {
   );
 });
 s.addText(
-  "Limitaciones: subconjunto de 12k imágenes (11%), etiquetas ruidosas, 5 épocas con fine-tuning parcial, una semilla por corrida, 224 px. " +
-    "Trabajo futuro: las 112k imágenes y fine-tuning completo, aprendizaje auto-supervisado sobre radiografías sin etiquetar, y multimodalidad (edad, sexo, proyección y texto del reporte).",
+  "Limitaciones: resultados principales con 12k imágenes (confirmados con 112k), etiquetas ruidosas, 5 épocas con fine-tuning parcial, una semilla por corrida, 224 px. " +
+    "Trabajo futuro: fine-tuning completo y más épocas, aprendizaje auto-supervisado sobre radiografías sin etiquetar, y multimodalidad (edad, sexo, proyección y texto del reporte).",
   { x: 0.6, y: 5.95, w: 12.1, h: 0.9, fontSize: 13, italic: true, color: C.accent6, margin: 0, isTextBox: true }
 );
 s.addNotes(
-  "En resumen: con el mismo presupuesto, ninguna arquitectura domina; la diferencia real está en el costo, donde ResNet18 es el más eficiente. Lo que sí mejora el desempeño es combinar los modelos. El híbrido promete, pero necesita más entrenamiento. Y metodológicamente, evaluar bien —por paciente, con umbrales en validación, intervalos de confianza y repitiendo el experimento— fue lo que evitó conclusiones engañosas. Como siguientes pasos: entrenar con todo el dataset, preentrenamiento auto-supervisado y multimodalidad. Gracias."
+  "En resumen: con el mismo presupuesto, ninguna arquitectura domina; la diferencia real está en el costo, donde ResNet18 es el más eficiente. Lo que sí mejora el desempeño es combinar los modelos. Con el dataset completo todo mejora unos 0.05 y las conclusiones se sostienen; el híbrido es el que más se beneficia de tener más datos. Y metodológicamente, evaluar bien —por paciente, con umbrales en validación, intervalos de confianza y repitiendo el experimento— fue lo que evitó conclusiones engañosas. Como siguientes pasos: entrenar con todo el dataset, preentrenamiento auto-supervisado y multimodalidad. Gracias."
 );
 
 (async () => {
