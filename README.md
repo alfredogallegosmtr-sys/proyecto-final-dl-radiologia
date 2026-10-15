@@ -23,7 +23,20 @@ Este repositorio **no incluye el dataset** (NIH ChestX-ray14 completo, ~42GB —
 4. Abre `ChestXray14_Model_Comparison.ipynb` y corre todas las celdas en orden. La primera vez, el notebook corre una prueba piloto con pocas imágenes antes de comprometerse al subconjunto completo de entrenamiento — revisa que esa celda termine sin errores antes de dejar correr el resto.
 5. Al terminar, `results/metrics.json` y las figuras de interpretabilidad quedan guardadas automáticamente — son la fuente de verdad para el paper y las slides.
 
+### GPU AMD (como en la corrida reportada en `results/`)
+
+Los resultados de `results/` se obtuvieron en una AMD Radeon RX 6800 XT (16GB) con Windows 11, usando PyTorch con ROCm (wheels nightly de AMD para `gfx103X`, sin soporte oficial para esta tarjeta en Windows). Con ROCm, PyTorch expone la GPU a traves de la API `torch.cuda`, por eso el notebook reporta `cuda`. Para reproducirlo en un venv aparte:
+
+```
+pip install --pre --index-url https://rocm.nightlies.amd.com/v2-staging/gfx103X-dgpu/ "torch[rocm]" torchvision
+pip install scikit-learn pandas matplotlib seaborn grad-cam ipykernel   # con un constraints file que fije torch/torchvision, para que grad-cam no los reemplace por la version CPU de PyPI
+```
+
+Versiones usadas: `torch 2.13.0a0+rocm7.13.0a20260421`, `torchvision 0.27.0a0+rocm7.13.0a20260421`, Python 3.14. Con una GPU NVIDIA basta el `pip install` normal de arriba (con la variante CUDA de PyTorch).
+
 ## Notas
+
+- `chestxray_data.py` contiene la clase del Dataset; tiene que estar junto al notebook (en Windows los workers del DataLoader no pueden importar clases definidas dentro del notebook).
 
 - Entrenamiento con transfer learning (pesos preentrenados de ImageNet, backbone mayormente congelado) — pensado para correr en minutos por modelo con GPU, no horas.
 - El tamaño del subconjunto de entrenamiento es configurable vía la variable `N_SAMPLES` al inicio del notebook.
