@@ -99,6 +99,7 @@ No se cambió el protocolo experimental de `PLAN.md` (modelos, LR, épocas, opti
 | Solo 12k imágenes (~11%); carga de PNGs de 1024px domina el tiempo por época | Preparado (no ejecutado): **dataset completo + caché a 256px + checkpoints** en `ChestXray14_Model_Comparison_112k.ipynb` |
 | Sin creatividad (criterio de evaluación: ensembles, híbridos) | **MaxViT-T** (híbrido CNN+Transformer, última capa descongelada: 9.2M entrenables, comparable a los demás) + **ensemble** (promedio de probabilidades); Grad-CAM también para MaxViT-T |
 | Una sola corrida: no se sabía si las diferencias eran estables | La corrida 2 se conserva como **repetición independiente** (§6) |
+| La estrategia de fine-tuning no estaba nombrada ni justificada | Paper §III-C: párrafo "Estrategia de fine-tuning" (**fine-tuning parcial**: último bloque + capa de salida desde ImageNet) con 4 razones (transferibilidad de las primeras capas, Yosinski 2014; riesgo de sobreajuste con 8,400 imágenes; presupuesto de cómputo; protocolo común), % ajustado por modelo (31/75/8/30%) en la Tabla II y vínculo con el sobreajuste de ResNet18 y el subajuste de MaxViT-T en la Discusión; slides de método actualizadas |
 | Balanceo de clases no justificado; faltaban accuracy en tabla, tiempo total, SSL/multimodalidad, generalización | Agregados al paper (justificación explícita del balanceo, columna de exactitud, tiempo total, trabajo futuro con SSL y multimodalidad, párrafo de generalización) |
 
 ---

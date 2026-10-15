@@ -164,7 +164,7 @@ s.addText("Mismo protocolo y mismo presupuesto para los cuatro modelos", { place
 const steps = [
   ["Datos", `${fmtInt(nSamples)} imágenes al azar; split por paciente 70/15/15 (${fmtInt(nTrain)} de entrenamiento)`],
   ["Entrada", "1024 → 224 px, normalización ImageNet, volteo horizontal; desbalance tratado con AUROC y umbral por clase"],
-  ["Entrenamiento", "Pesos de ImageNet; solo el último bloque + capa de 14 salidas. Adam 1e-4, 5 épocas, mejor época en validación"],
+  ["Fine-tuning parcial", "Desde ImageNet se ajustan el último bloque + capa de 14 salidas; el resto, congelado. Adam 1e-4, 5 épocas, mejor época en validación"],
   ["Evaluación", "AUROC, F1 (umbral elegido en validación), exactitud, IC 95% por bootstrap y comparación pareada"],
 ];
 steps.forEach(([h, d], i) => {
@@ -190,13 +190,13 @@ NAMES.forEach((n, i) => {
   card(s, 7.6, y, 5.1, 1.15, `modelo-${n}`);
   dot(s, 7.85, y + 0.22, MCOLOR[n], 0.28);
   s.addText(LABEL[n], { x: 8.3, y: y + 0.1, w: 4.2, h: 0.45, fontSize: 18, bold: true, color: C.text1, margin: 0, isTextBox: true, fontFace: THEME.headFontFace });
-  s.addText(`${KIND[n]} · ${fmt(m(n).total_params / 1e6, 1)}M parám. (${fmt(m(n).trainable_params / 1e6, 1)}M entrenables)`,
+  s.addText(`${KIND[n]} · ${fmt(m(n).total_params / 1e6, 1)}M parám., se ajusta el ${fmt((100 * m(n).trainable_params) / m(n).total_params, 0)}% (${fmt(m(n).trainable_params / 1e6, 1)}M)`,
     { x: 8.3, y: y + 0.55, w: 4.25, h: 0.5, fontSize: 13, color: C.text2, margin: 0, isTextBox: true, valign: "top" });
 });
 s.addText("+ Ensemble: promedio de las probabilidades de los cuatro, sin entrenamiento adicional",
   { x: 7.6, y: 6.6, w: 5.1, h: 0.35, fontSize: 13, italic: true, color: C.accent5, margin: 0, isTextBox: true });
 s.addNotes(
-  "Los cuatro modelos se entrenan exactamente igual. La partición es por paciente, para que el modelo nunca se evalúe sobre un paciente que ya vio. El desbalance se trata en la evaluación: AUROC, que no depende de la prevalencia, y un umbral por clase elegido en validación. En el híbrido descongelé solo su última capa para que su capacidad entrenable sea comparable a la de los demás. Y el ensemble es simplemente el promedio de las probabilidades de los cuatro."
+  "Los cuatro modelos se entrenan exactamente igual. La partición es por paciente, para que el modelo nunca se evalúe sobre un paciente que ya vio. El desbalance se trata en la evaluación: AUROC, que no depende de la prevalencia, y un umbral por clase elegido en validación. Hice fine-tuning parcial: parto de los pesos de ImageNet y ajusto solo el último bloque y la capa de salida. Por cuatro razones: las primeras capas aprenden rasgos genéricos como bordes y texturas que sirven igual en radiografías; con 8,400 imágenes, ajustar los 86 millones de parámetros del ViT sobreajustaría; el presupuesto de cómputo no daba para fine-tuning completo de cuatro modelos; y aplicar la misma regla a todos mantiene la comparación justa. En el híbrido descongelé solo su última capa para que su capacidad entrenable sea comparable. Y el ensemble es simplemente el promedio de las probabilidades de los cuatro."
 );
 
 // ---------- 4. Resultados ----------
@@ -346,7 +346,7 @@ concl.forEach(([color, h, d], i) => {
   );
 });
 s.addText(
-  "Limitaciones: subconjunto de 12k imágenes (11%), etiquetas ruidosas, 5 épocas con backbone casi congelado, una semilla por corrida, 224 px. " +
+  "Limitaciones: subconjunto de 12k imágenes (11%), etiquetas ruidosas, 5 épocas con fine-tuning parcial, una semilla por corrida, 224 px. " +
     "Trabajo futuro: las 112k imágenes y fine-tuning completo, aprendizaje auto-supervisado sobre radiografías sin etiquetar, y multimodalidad (edad, sexo, proyección y texto del reporte).",
   { x: 0.6, y: 5.95, w: 12.1, h: 0.9, fontSize: 13, italic: true, color: C.accent6, margin: 0, isTextBox: true }
 );
