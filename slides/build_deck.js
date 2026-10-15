@@ -311,10 +311,10 @@ cards2.forEach(([h, d], i) => {
     { x: x + 0.25, y: 4.75, w: 3.4, h: 1.3, valign: "top", margin: 0, isTextBox: true, paraSpaceAfter: 6 }
   );
 });
-s.addText(`Mismo protocolo con las ${fmtInt(FULL.config.n_samples)} imágenes (prueba: ${fmtInt(FULL.split_sizes.test.images)}); corrida en modo de bajo consumo para evitar los apagados del equipo.`,
+s.addText(`Mismo protocolo, incluido el fine-tuning parcial, con las ${fmtInt(FULL.config.n_samples)} imágenes (prueba: ${fmtInt(FULL.split_sizes.test.images)}); corrida en modo de bajo consumo para evitar los apagados del equipo.`,
   { x: 0.6, y: 6.35, w: 12.1, h: 0.4, fontSize: 13, italic: true, color: C.accent5, margin: 0, isTextBox: true });
 s.addNotes(
-  `También repetí todo con el dataset completo, 112 mil imágenes. Para que la computadora no se apagara, lo corrí en modo de bajo consumo: la GPU descansa la mitad del tiempo, sin cambiar el entrenamiento. Resultado: todos mejoran unos 0.05 de AUROC, y el híbrido es el que más gana, ${fmt(gains[maxGain], 3)}, y ahora sí converge; le faltaban datos. El ensemble sigue siendo el mejor, con ${fmt(mf("ensemble").auroc_macro)}, cerca de CheXNet. Y con un conjunto de prueba nueve veces mayor, ResNet18 ya es significativamente el mejor modelo individual, aunque por menos de 0.01. Las conclusiones se sostienen.`
+  `También repetí todo con el dataset completo, 112 mil imágenes. Con el mismo protocolo, incluido el mismo fine-tuning parcial, para que lo único que cambie sea la cantidad de datos. Para que la computadora no se apagara, lo corrí en modo de bajo consumo: la GPU descansa la mitad del tiempo, sin cambiar el entrenamiento. Resultado: todos mejoran unos 0.05 de AUROC, y el híbrido es el que más gana, ${fmt(gains[maxGain], 3)}, y ahora sí converge; le faltaban datos. El ensemble sigue siendo el mejor, con ${fmt(mf("ensemble").auroc_macro)}, cerca de CheXNet. Y con un conjunto de prueba nueve veces mayor, ResNet18 ya es significativamente el mejor modelo individual, aunque por menos de 0.01. Las conclusiones se sostienen.`
 );
 
 // ---------- 6. AUROC por clase ----------
@@ -399,7 +399,7 @@ concl.forEach(([color, h, d], i) => {
 });
 s.addText(
   "Limitaciones: resultados principales con 12k imágenes (confirmados con 112k), etiquetas ruidosas, 5 épocas con fine-tuning parcial, una semilla por corrida, 224 px. " +
-    "Trabajo futuro: fine-tuning completo y más épocas, aprendizaje auto-supervisado sobre radiografías sin etiquetar, y multimodalidad (edad, sexo, proyección y texto del reporte).",
+    "Trabajo futuro: fine-tuning completo (todas las capas) sobre las 112k imágenes, aprendizaje auto-supervisado sobre radiografías sin etiquetar, y multimodalidad (edad, sexo, proyección y texto del reporte).",
   { x: 0.6, y: 5.95, w: 12.1, h: 0.9, fontSize: 13, italic: true, color: C.accent6, margin: 0, isTextBox: true }
 );
 s.addNotes(

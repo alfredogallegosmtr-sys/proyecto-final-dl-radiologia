@@ -4,7 +4,9 @@ Experimento **complementario**. Los resultados principales del proyecto (paper, 
 
 ## Qué es
 
-`ChestXray14_112k_bajo_consumo.ipynb` usa el mismo protocolo que el notebook principal: 4 modelos más ensemble, fine-tuning parcial, split por paciente y mismas métricas. Las diferencias:
+`ChestXray14_112k_bajo_consumo.ipynb` usa el mismo protocolo que el notebook principal: 4 modelos más ensemble, fine-tuning parcial, split por paciente y mismas métricas.
+
+**"Dataset completo" no es "fine-tuning completo".** Esta corrida usa todas las imágenes, pero mantiene el **mismo fine-tuning parcial** (último bloque + capa de salida), para que lo único que cambie respecto a 12k sea la cantidad de datos. El fine-tuning completo (todas las capas) queda como trabajo futuro. Las diferencias:
 
 | | Notebook principal | Esta corrida |
 |---|---|---|

@@ -47,7 +47,7 @@ Y noten la columna de exactitud: 0.950 para todos, exactamente lo mismo que un m
 En el extremo opuesto, ResNet18, que ajusta el 75% de su red, **se sobreajusta** desde la época 3: *memoriza el entrenamiento y empeora en datos nuevos*. Por eso uso los pesos de la mejor época.
 
 ### 6. Dataset completo: 112k imágenes (3:20–3:55)
-Después repetí todo con el dataset completo, 112 mil imágenes. Para que la computadora no se apagara, lo corrí en **modo de bajo consumo**: *la GPU descansa la mitad del tiempo, sin cambiar el entrenamiento*. Resultado: todos mejoran unos 0.05 de AUROC, y el híbrido es el que más gana, +0.057, y ahora sí converge: le faltaban datos. El ensemble sigue siendo el mejor, con 0.813, cerca de CheXNet. Y con un conjunto de prueba nueve veces mayor, ResNet18 ya es significativamente el mejor modelo individual, aunque por menos de 0.01. Las conclusiones se sostienen.
+Después repetí todo con el dataset completo, 112 mil imágenes, con el mismo fine-tuning parcial, para que lo único que cambie sea la cantidad de datos. Para que la computadora no se apagara, lo corrí en **modo de bajo consumo**: *la GPU descansa la mitad del tiempo, sin cambiar el entrenamiento*. Resultado: todos mejoran unos 0.05 de AUROC, y el híbrido es el que más gana, +0.057, y ahora sí converge: le faltaban datos. El ensemble sigue siendo el mejor, con 0.813, cerca de CheXNet. Y con un conjunto de prueba nueve veces mayor, ResNet18 ya es significativamente el mejor modelo individual, aunque por menos de 0.01. Las conclusiones se sostienen.
 
 ### 7. AUROC por hallazgo (3:55–4:10)
 Por hallazgo, la dificultad pesa más que la arquitectura: enfisema, edema y derrame superan 0.8 en todos los modelos, y nódulos, infiltración y neumonía quedan por debajo de 0.7, por ser lesiones pequeñas o con etiquetas ambiguas.
@@ -61,7 +61,7 @@ Con **Grad-CAM**, *que colorea las zonas de la imagen que más influyeron en la 
 ### 10. Conclusiones (5:15–5:50)
 En resumen: con el mismo presupuesto, CNN, Transformer e híbrido rinden casi igual; con el dataset completo todos mejoran y ResNet18 gana por muy poco. La diferencia real está en el costo, donde ResNet18 es el más eficiente. Combinar los modelos sí mejora el desempeño, con 12k y con 112k. Y metodológicamente, evaluar por paciente, con umbrales en validación, intervalos de confianza y repitiendo el experimento, fue lo que evitó conclusiones engañosas.
 
-Como trabajo futuro: fine-tuning completo y más épocas, preentrenamiento auto-supervisado y modelos multimodales con datos clínicos. Gracias.
+Como trabajo futuro: fine-tuning completo de toda la red sobre las 112 mil imágenes, preentrenamiento auto-supervisado y modelos multimodales con datos clínicos. Gracias.
 
 ---
 
@@ -263,6 +263,18 @@ Todos mejoran entre +0.046 y +0.057 de AUROC. MaxViT-T es el que más gana y pas
 - `CORRIDA_112K.md`, tabla de resultados.
 - `results/full_112k/metrics.json`, línea 388: `"best_epoch": 4` de MaxViT.
 - `results/full_112k/val_loss_curves.png` y `results/full_112k/auroc_per_class.png`.
+
+**27. Si ya usaste las 112k imágenes, ¿por qué el fine-tuning sigue siendo parcial?**
+Porque son dos cosas distintas: el **tamaño de los datos** (cuántas imágenes) y **cuánta red se entrena** (cuántas capas). En la corrida de 112k cambié solo la cantidad de datos y mantuve el fine-tuning parcial, para aislar su efecto. Si hubiera cambiado ambas cosas, no sabría cuál causó la mejora de ~0.05.
+
+El fine-tuning completo es el siguiente paso y lo dejo como trabajo futuro:
+- requiere mucho más cómputo y memoria (hasta 86M parámetros entrenables en el ViT, contra 7M ahora);
+- en este equipo, con el modo de bajo consumo, tardaría más de 8 horas;
+- probablemente beneficie más al ViT y a MaxViT, de los que solo se ajustó el 8% y el 30% de sus parámetros.
+
+Evidencia:
+- `ChestXray14_112k_bajo_consumo.ipynb`, **In [8]**: la misma `build_model` del notebook principal, con `freeze_all(model)` y solo el último bloque descongelado.
+- `paper/paper.tex`, Conclusiones, trabajo futuro punto (i) "Fine-tuning completo".
 
 ### F. Mapa rápido para la revisión de código
 
