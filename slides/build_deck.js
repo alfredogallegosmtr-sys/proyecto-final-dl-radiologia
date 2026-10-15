@@ -13,6 +13,21 @@ const M = JSON.parse(fs.readFileSync(path.join(RES, "metrics.json"), "utf8"));
 const PREV = JSON.parse(fs.readFileSync(path.join(RES, "subset_12k", "metrics.json"), "utf8"));
 const FULL = JSON.parse(fs.readFileSync(path.join(RES, "full_112k", "metrics.json"), "utf8")); // experimento complementario, dataset completo
 
+// Notas del orador: se toman del guion (slides/guion_presentacion.md, Parte 1), una seccion "### N." por diapositiva,
+// para que lo que se ve al presentar coincida siempre con el guion. Si falta el guion, se usan las notas escritas aqui.
+const GUIDE_NOTES = (() => {
+  const p = path.join(REPO, "slides", "guion_presentacion.md");
+  if (!fs.existsSync(p)) return [];
+  const g = fs.readFileSync(p, "utf8");
+  const part = g.slice(g.indexOf("### 1. "), g.indexOf("## Parte 2."));
+  return part.split(/^### \d+\. .*$/m).slice(1).map((sec) =>
+    sec.split(/\r?\n/)
+      .filter((l) => !l.startsWith("**Idea clave") && l.trim() !== "---")
+      .map((l) => l.replace(/\*\*/g, "").replace(/^- /, "• "))
+      .join("\n").replace(/\n{3,}/g, "\n\n").trim());
+})();
+let noteIdx = 0;
+
 const NAMES = ["densenet121", "resnet18", "vit_b_16", "maxvit_t"];
 const EVAL = [...NAMES, "ensemble"];
 const LABEL = { densenet121: "DenseNet121", resnet18: "ResNet18", vit_b_16: "ViT-B/16", maxvit_t: "MaxViT-T", ensemble: "Ensemble" };
@@ -140,7 +155,7 @@ s.addText(
   { placeholder: "body" }
 );
 EVAL.forEach((n, i) => dot(s, 0.8 + i * 0.35, 1.55, MCOLOR[n], 0.2));
-s.addNotes(
+s.addNotes(GUIDE_NOTES[noteIdx++] || 
   "Presento una comparación de cuatro arquitecturas para detectar 14 hallazgos en radiografías de tórax: dos redes convolucionales, DenseNet121 y ResNet18; un Vision Transformer, ViT-B/16; y un híbrido que combina convoluciones y atención, MaxViT-T. Además combino los cuatro en un ensemble. La pregunta es qué enfoque conviene en este problema bajo un mismo presupuesto."
 );
 
@@ -154,7 +169,7 @@ s.addText("14 hallazgos, varios por imagen y muy desbalanceados", { placeholder:
   s.addText(small, { x, y: 2.6, w: 2.8, h: 0.5, fontSize: 14, color: C.text2, align: "center", isTextBox: true });
 });
 fitImage(s, "sample_batch.png", 0.6, 3.55, 12.1, 3.3, "ejemplos-dataset");
-s.addNotes(
+s.addNotes(GUIDE_NOTES[noteIdx++] || 
   "NIH ChestX-ray14 tiene 112 mil radiografías de unos 30 mil pacientes, con 14 hallazgos que pueden aparecer juntos. Las etiquetas se extrajeron automáticamente de los reportes, así que tienen ruido, y las clases están muy desbalanceadas: Hernia aparece en 0.2% de las imágenes e Infiltration en 18%. Por eso la exactitud no sirve y la métrica principal es el AUROC."
 );
 
@@ -196,7 +211,7 @@ NAMES.forEach((n, i) => {
 });
 s.addText("+ Ensemble: promedio de las probabilidades de los cuatro, sin entrenamiento adicional",
   { x: 7.6, y: 6.6, w: 5.1, h: 0.35, fontSize: 13, italic: true, color: C.accent5, margin: 0, isTextBox: true });
-s.addNotes(
+s.addNotes(GUIDE_NOTES[noteIdx++] || 
   "Los cuatro modelos se entrenan exactamente igual. La partición es por paciente, para que el modelo nunca se evalúe sobre un paciente que ya vio. El desbalance se trata en la evaluación: AUROC, que no depende de la prevalencia, y un umbral por clase elegido en validación. Hice fine-tuning parcial: parto de los pesos de ImageNet y ajusto solo el último bloque y la capa de salida. Por cuatro razones: las primeras capas aprenden rasgos genéricos como bordes y texturas que sirven igual en radiografías; con 8,400 imágenes, ajustar los 86 millones de parámetros del ViT sobreajustaría; el presupuesto de cómputo no daba para fine-tuning completo de cuatro modelos; y aplicar la misma regla a todos mantiene la comparación justa. En el híbrido descongelé solo su última capa para que su capacidad entrenable sea comparable. Y el ensemble es simplemente el promedio de las probabilidades de los cuatro."
 );
 
@@ -238,7 +253,7 @@ cards.forEach(([h, d], i) => {
 });
 s.addText(`Una repetición independiente del experimento cambió el orden de los modelos individuales (hasta ${fmt(maxShift, 3)} de AUROC).`,
   { x: 0.6, y: 6.35, w: 12.1, h: 0.4, fontSize: 13, italic: true, color: C.accent5, margin: 0, isTextBox: true });
-s.addNotes(
+s.addNotes(GUIDE_NOTES[noteIdx++] || 
   `La métrica principal es el AUROC promedio. Los cuatro modelos individuales quedan entre ${fmt(m(byAuc[3]).auroc_macro)} y ${fmt(m(byAuc[0]).auroc_macro)}, y ninguna diferencia entre ellos es significativa. Además, repetí el experimento y el orden cambió: en la corrida anterior ResNet18 parecía significativamente mejor que DenseNet121 y en esta ya no. El ensemble, en cambio, mejora a todos con significancia: AUROC ${fmt(m("ensemble").auroc_macro)}. La exactitud es igual a la de un modelo que siempre dice 'sano', por eso no sirve para comparar.`
 );
 
@@ -262,7 +277,7 @@ s.addText(maxvitStillImproving
   : "Con 5 épocas y solo la última capa entrenable, no superó a las CNN.",
   { x: 0.85, y: 5.8, w: 5.0, h: 0.85, fontSize: 13, color: C.text2, margin: 0, isTextBox: true });
 fitImage(s, "val_loss_curves.png", 6.3, 1.5, 6.4, 5.25, "curvas-convergencia");
-s.addNotes(
+s.addNotes(GUIDE_NOTES[noteIdx++] || 
   `Aquí está la parte exploratoria. El ensemble, que solo promedia las probabilidades, mejora a cada modelo entre ${fmt(ensGainMin, 3)} y ${fmt(ensGainMax, 3)} de AUROC, todas significativas: los modelos cometen errores distintos. Su costo es ejecutar los cuatro. El híbrido MaxViT-T quedó con el AUROC más bajo, pero la curva explica por qué: es el único cuya pérdida de validación seguía bajando en la quinta época. En la literatura los híbridos son los mejores en este dataset, pero con entrenamiento completo; con este presupuesto no alcanzó a converger.`
 );
 
@@ -313,7 +328,7 @@ cards2.forEach(([h, d], i) => {
 });
 s.addText(`Mismo protocolo, incluido el fine-tuning parcial, con las ${fmtInt(FULL.config.n_samples)} imágenes (prueba: ${fmtInt(FULL.split_sizes.test.images)}); corrida en modo de bajo consumo para evitar los apagados del equipo.`,
   { x: 0.6, y: 6.35, w: 12.1, h: 0.4, fontSize: 13, italic: true, color: C.accent5, margin: 0, isTextBox: true });
-s.addNotes(
+s.addNotes(GUIDE_NOTES[noteIdx++] || 
   `También repetí todo con el dataset completo, 112 mil imágenes. Con el mismo protocolo, incluido el mismo fine-tuning parcial, para que lo único que cambie sea la cantidad de datos. Para que la computadora no se apagara, lo corrí en modo de bajo consumo: la GPU descansa la mitad del tiempo, sin cambiar el entrenamiento. Resultado: todos mejoran unos 0.05 de AUROC, y el híbrido es el que más gana, ${fmt(gains[maxGain], 3)}, y ahora sí converge; le faltaban datos. El ensemble sigue siendo el mejor, con ${fmt(mf("ensemble").auroc_macro)}, cerca de CheXNet. Y con un conjunto de prueba nueve veces mayor, ResNet18 ya es significativamente el mejor modelo individual, aunque por menos de 0.01. Las conclusiones se sostienen.`
 );
 
@@ -333,7 +348,7 @@ s.addText(
   ],
   { x: 7.6, y: 1.6, w: 5.1, h: 5.2, valign: "top", margin: 0, isTextBox: true, paraSpaceAfter: 4 }
 );
-s.addNotes(
+s.addNotes(GUIDE_NOTES[noteIdx++] || 
   `Las diferencias entre hallazgos son mucho mayores que entre modelos. Los más fáciles son ${easiest.map((e) => e.c).join(", ")}; los más difíciles, ${hardest.map((e) => e.c).join(", ")}: lesiones pequeñas como los nódulos o con etiquetas ambiguas como neumonía e infiltración. Todos los modelos siguen el mismo patrón, lo que sugiere que el límite está en los datos y la resolución más que en la arquitectura.`
 );
 
@@ -361,7 +376,7 @@ s.addText(
     `Entre los modelos individuales, ResNet18 es el mejor compromiso: el más rápido y el que menos memoria usa.`,
   { x: 0.6, y: 6.2, w: 12.1, h: 0.7, fontSize: 14, color: C.text2, margin: 0, isTextBox: true }
 );
-s.addNotes(
+s.addNotes(GUIDE_NOTES[noteIdx++] || 
   `El costo es donde los modelos sí se separan. ViT-B/16 tiene ${fmt(paramRatio, 0)} veces los parámetros de DenseNet121, y tanto el ViT como el híbrido son unas ${fmt(Math.min(infRatioVit, infRatioMax), 0)} veces más lentos que ResNet18 en inferencia, sin rendir más. Con desempeño equivalente, ResNet18 es el mejor compromiso individual; si se busca el máximo desempeño, el ensemble, pagando el costo de correr los cuatro. Nota: en ROCm no hay atención eficiente en memoria, así que los modelos con atención salen algo pesimistas.`
 );
 
@@ -372,7 +387,7 @@ fitImage(s, "gradcam_examples.png", 0.4, 1.3, 7.6, 5.2, "gradcam");
 fitImage(s, "attention_example.png", 8.1, 1.3, 4.9, 5.2, "atencion-vit");
 s.addText("Grad-CAM: DenseNet121, ResNet18 y MaxViT-T (híbrido), para la clase real", { x: 0.4, y: 6.55, w: 7.6, h: 0.4, fontSize: 13, color: C.accent5, align: "center", margin: 0, isTextBox: true });
 s.addText("ViT-B/16: atención del último bloque y rollout", { x: 8.1, y: 6.55, w: 4.9, h: 0.4, fontSize: 13, color: C.accent5, align: "center", margin: 0, isTextBox: true });
-s.addNotes(
+s.addNotes(GUIDE_NOTES[noteIdx++] || 
   "En el derrame pleural, con probabilidades altas, las CNN miran la región torácica correcta. En la infiltración, con probabilidades bajas, los mapas se van a los bordes de la imagen, a la marca de texto 'PORTABLE' o fuera de los pulmones: señal de posibles atajos, un problema conocido en este dataset. Para el ViT, la atención del último bloque sí recorre los campos pulmonares, mientras que el rollout se concentra en las esquinas, un artefacto conocido. Son ejemplos cualitativos, no una medida de localización."
 );
 
@@ -402,7 +417,7 @@ s.addText(
     "Trabajo futuro: fine-tuning completo (todas las capas) sobre las 112k imágenes, aprendizaje auto-supervisado sobre radiografías sin etiquetar, y multimodalidad (edad, sexo, proyección y texto del reporte).",
   { x: 0.6, y: 5.95, w: 12.1, h: 0.9, fontSize: 13, italic: true, color: C.accent6, margin: 0, isTextBox: true }
 );
-s.addNotes(
+s.addNotes(GUIDE_NOTES[noteIdx++] || 
   "En resumen: con el mismo presupuesto, ninguna arquitectura domina; la diferencia real está en el costo, donde ResNet18 es el más eficiente. Lo que sí mejora el desempeño es combinar los modelos. Con el dataset completo todo mejora unos 0.05 y las conclusiones se sostienen; el híbrido es el que más se beneficia de tener más datos. Y metodológicamente, evaluar bien —por paciente, con umbrales en validación, intervalos de confianza y repitiendo el experimento— fue lo que evitó conclusiones engañosas. Como siguientes pasos: entrenar con todo el dataset, preentrenamiento auto-supervisado y multimodalidad. Gracias."
 );
 

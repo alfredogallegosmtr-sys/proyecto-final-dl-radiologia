@@ -10,58 +10,129 @@
 
 ## Parte 1. Guion por diapositiva
 
-Las frases en *cursiva* son definiciones breves para decir en voz alta la primera vez que aparece el término.
+**Cómo usar este guion**
+- Está escrito para decirse en voz alta: frases cortas, cifras redondeadas y comparaciones fáciles de recordar. Las cifras exactas están en la Parte 2.
+- Lo que va entre **[corchetes]** es una acción, no se lee: señalar, hacer una pausa.
+- No hace falta memorizarlo palabra por palabra. Basta con recordar la **idea clave** de cada diapositiva (en negritas al inicio) y contarla con tus palabras.
+
+**Pronunciación de los nombres**
+
+| Se escribe | Se dice |
+|---|---|
+| DenseNet | "dens-net" |
+| ResNet | "res-net" |
+| ViT | "vit" (como se escribe) |
+| MaxViT | "max-vit" |
+| AUROC | "a-u-roc" |
+| Grad-CAM | "grad-cam" |
+| Ensemble | "ensamble" |
+| ChestX-ray14 | "chest-ex-ray catorce" |
+
+---
 
 ### 1. Portada (0:00–0:20)
-Buenas tardes. Soy Alfredo Gallegos López. Mi proyecto compara cuatro arquitecturas de deep learning para detectar hallazgos en radiografías de tórax. La pregunta es simple: en este problema, ¿conviene una red convolucional, un Transformer o un híbrido de ambos?
+**Idea clave: la pregunta del proyecto.**
+
+Buenas tardes, soy Alfredo Gallegos López.
+
+Hoy quiero responder una pregunta sencilla: si queremos que una computadora lea radiografías de tórax, ¿qué conviene más? ¿Una red convolucional, un Transformer, o una mezcla de los dos?
 
 ### 2. El problema (0:20–0:55)
-Usé NIH ChestX-ray14: 112 mil radiografías de unos 30 mil pacientes, con 14 hallazgos. Tiene tres dificultades:
-- Es **multi-etiqueta**: *una misma imagen puede tener varios hallazgos a la vez*.
-- Las etiquetas se extrajeron automáticamente de los reportes, así que tienen ruido.
-- Está muy desbalanceado: Hernia aparece en el 0.2% de las imágenes e Infiltration en el 18%.
+**Idea clave: es un problema difícil, y por eso uso AUROC.**
 
-Por eso la exactitud no sirve para comparar, y la métrica principal es el **AUROC**: *la probabilidad de que el modelo le dé una puntuación más alta a una radiografía con el hallazgo que a una sin él; 0.5 es azar y 1 es perfecto*.
+Trabajé con ChestX-ray14: ciento doce mil radiografías de unos treinta mil pacientes, con catorce posibles hallazgos.
+
+Y no es un problema fácil, por tres razones:
+- **Una misma radiografía puede tener varios hallazgos a la vez.**
+- **Las etiquetas tienen errores**, porque salieron automáticamente de los reportes médicos.
+- **Hay hallazgos rarísimos.** La hernia aparece en apenas dos de cada mil imágenes.
+
+Por eso no comparo con el porcentaje de aciertos, sino con el **AUROC**. La idea es simple: si le doy al modelo una radiografía enferma y una sana, ¿qué tan seguido le da más puntaje a la enferma? Medio punto es adivinar al azar; uno es perfecto.
 
 ### 3. Metodología (0:55–1:50)
-Los cuatro modelos siguen exactamente el mismo protocolo. Tomé 12 mil imágenes y las separé **por paciente**: 70% entrenamiento, 15% validación y 15% prueba, sin que un paciente aparezca en dos conjuntos; si no, el modelo se evaluaría sobre pacientes que ya vio.
+**Idea clave: mismas reglas para todos, y modelos que no empiezan de cero.**
 
-Comparo dos **CNN**, *redes que analizan la imagen con filtros locales*: DenseNet121, la base de CheXNet, y ResNet18. Un **Transformer** puro, ViT-B/16, *que divide la imagen en parches y relaciona todos entre sí con atención*. Y un **híbrido**, MaxViT-T, que combina ambas cosas.
+Para que la comparación sea justa, los cuatro modelos siguen exactamente las mismas reglas.
 
-Hice **fine-tuning parcial**: *parto de pesos ya entrenados en ImageNet y ajusto solo el último bloque y la capa de salida*. Las primeras capas aprenden rasgos genéricos que se transfieren bien; con 8,400 imágenes, ajustar toda la red sobreajustaría; y la misma regla para todos mantiene la comparación justa.
+Primero, separé las imágenes **por paciente**: nadie aparece al mismo tiempo en entrenamiento y en prueba. Si no, sería como dejar que el alumno vea el examen antes de presentarlo.
 
-Para evaluar uso AUROC, **F1**, *que balancea aciertos y falsas alarmas*, con un umbral por clase elegido en validación, exactitud e **intervalos de confianza**, *el rango donde probablemente está el valor real*. Y como variante, un **ensemble**: *el promedio de las predicciones de los cuatro modelos*.
+Los modelos son cuatro:
+- **Dos redes convolucionales, DenseNet y ResNet.** Miran la imagen con filtros pequeños, como una lupa que recorre la placa.
+- **Un Transformer, el ViT.** Corta la imagen en cuadritos y los compara todos entre sí.
+- **Un híbrido, MaxViT,** que combina las dos ideas.
+
+Ninguno empieza de cero. Todos vienen entrenados con millones de fotos normales, y yo solo reentreno su última parte. Es como contratar a alguien que ya sabe mirar imágenes y enseñarle solamente a leer radiografías. A esto se le llama **fine-tuning parcial**.
+
+Y además pruebo un **ensemble**: juntar a los cuatro modelos y promediar su opinión.
 
 ### 4. Resultados (1:50–2:40)
-Este es el resultado central. Los cuatro modelos individuales quedan entre 0.733 y 0.749 de AUROC, y **ninguna diferencia entre ellos es estadísticamente significativa**. Además, repetí el experimento y el orden cambió: en la corrida anterior ResNet18 parecía mejor que DenseNet con significancia, y en esta ya no. Con este presupuesto, ninguna arquitectura domina.
+**Idea clave: los cuatro empatan; el ensemble gana.**
 
-Lo que sí mejora es el **ensemble**: 0.767 de AUROC, significativamente mejor que cada modelo por separado.
+**[Señala la tabla]** Este es el resultado principal.
 
-Y noten la columna de exactitud: 0.950 para todos, exactamente lo mismo que un modelo que siempre dice "sano". Por eso no la uso para comparar.
+Los cuatro modelos quedan muy parejos, entre 0.73 y 0.75 de AUROC, y sus diferencias están dentro del margen de error. De hecho, cuando repetí el experimento, el orden cambió.
+
+En cambio, el **ensemble** sí destaca: llega a 0.77 y le gana a todos, con diferencia significativa.
+
+Y un detalle curioso. **[Señala la columna de exactitud]** La exactitud es de 95% para todos. Pero un modelo que siempre dice "está sano" también saca 95%. Por eso esa métrica, aquí, no sirve para comparar.
 
 ### 5. Ensemble e híbrido (2:40–3:20)
-¿Por qué funciona el ensemble? Porque CNN, Transformer e híbrido cometen errores distintos, y al promediarlos se compensan. Su costo es correr los cuatro modelos.
+**Idea clave: por qué gana el ensemble y por qué el híbrido quedó atrás.**
 
-¿Y el híbrido? Quedó con el AUROC más bajo, pero la curva lo explica: es el único cuya **pérdida de validación**, *el error en datos que no usó para entrenar*, seguía bajando en la quinta época. No llegó a converger. En la literatura los híbridos son los mejores en este dataset, pero con entrenamiento completo.
+¿Por qué funciona el ensemble? Por lo mismo que una **segunda opinión médica**: cada modelo se equivoca en cosas distintas, y al juntarlos, los errores se compensan.
 
-En el extremo opuesto, ResNet18, que ajusta el 75% de su red, **se sobreajusta** desde la época 3: *memoriza el entrenamiento y empeora en datos nuevos*. Por eso uso los pesos de la mejor época.
+¿Y el híbrido? Quedó en último lugar. Pero miren su curva. **[Señala la línea amarilla]** Todavía estaba aprendiendo cuando se terminó el entrenamiento. Simplemente le faltó tiempo.
 
-### 6. Dataset completo: 112k imágenes (3:20–3:55)
-Después repetí todo con el dataset completo, 112 mil imágenes, con el mismo fine-tuning parcial, para que lo único que cambie sea la cantidad de datos. Para que la computadora no se apagara, lo corrí en **modo de bajo consumo**: *la GPU descansa la mitad del tiempo, sin cambiar el entrenamiento*. Resultado: todos mejoran unos 0.05 de AUROC, y el híbrido es el que más gana, +0.057, y ahora sí converge: le faltaban datos. El ensemble sigue siendo el mejor, con 0.813, cerca de CheXNet. Y con un conjunto de prueba nueve veces mayor, ResNet18 ya es significativamente el mejor modelo individual, aunque por menos de 0.01. Las conclusiones se sostienen.
+ResNet, en cambio, aprende tan rápido que pronto empieza a memorizar. Por eso siempre uso su mejor momento, no el último.
 
-### 7. AUROC por hallazgo (3:55–4:10)
-Por hallazgo, la dificultad pesa más que la arquitectura: enfisema, edema y derrame superan 0.8 en todos los modelos, y nódulos, infiltración y neumonía quedan por debajo de 0.7, por ser lesiones pequeñas o con etiquetas ambiguas.
+### 6. Con todos los datos: 112 mil imágenes (3:20–3:55)
+**Idea clave: con todos los datos, todos mejoran y las conclusiones se mantienen.**
+
+Después quise saber qué pasa con todos los datos. Así que repetí todo con las ciento doce mil imágenes, con las mismas reglas; lo único que cambia es la cantidad de datos.
+
+Mi computadora se apagaba con tanta carga, así que puse la tarjeta gráfica a medio ritmo. Tardó casi cuatro horas, pero sin un solo apagado.
+
+¿El resultado? **Todos mejoran unos cinco puntos.** El híbrido es el que más gana, y ahora sí termina de aprender. El ensemble sube a 0.81, muy cerca de los mejores trabajos publicados. Y con tantos datos, ResNet ya se separa como el mejor modelo individual, aunque por muy poquito.
+
+### 7. Dificultad por hallazgo (3:55–4:10)
+**Idea clave: importa más la enfermedad que el modelo.**
+
+Algo que me pareció muy interesante: la dificultad depende más de la enfermedad que del modelo. Las que son grandes y evidentes, como el edema o el derrame, se detectan bien. Las pequeñas, como los nódulos, les cuestan a todos.
 
 ### 8. Costo computacional (4:10–4:40)
-Donde sí hay diferencias es en el costo. ViT-B/16 tiene 86 millones de parámetros, doce veces DenseNet. ViT y MaxViT son unas 13 veces más lentos que ResNet18 en **inferencia**, *el tiempo para clasificar imágenes nuevas*, y usan más del doble de memoria, sin rendir más. Entre los modelos individuales, **ResNet18 es el mejor compromiso**.
+**Idea clave: donde sí hay diferencias grandes es en el costo.**
 
-### 9. Interpretabilidad (4:40–5:15)
-Con **Grad-CAM**, *que colorea las zonas de la imagen que más influyeron en la predicción*, y con mapas de atención vemos dónde mira cada modelo. En el derrame pleural, con probabilidad alta, las CNN miran la región correcta. Pero en la infiltración, los mapas se van a los bordes, a la marca de texto "PORTABLE" o fuera de los pulmones. Eso indica posibles **atajos**: *el modelo usa pistas que no son clínicas*. Un buen AUROC no garantiza que use los signos correctos.
+Y donde sí hay diferencias grandes es en el costo.
+
+El ViT tiene doce veces más parámetros que DenseNet. Y el ViT y el híbrido son unas trece veces más lentos que ResNet para clasificar, sin dar mejores resultados.
+
+Si tuviera que elegir uno para la práctica, sería **ResNet**: rinde igual o mejor, y es el más rápido y ligero.
+
+### 9. ¿Dónde miran los modelos? (4:40–5:15)
+**Idea clave: acertar no siempre significa ver lo correcto.**
+
+Por último, quise ver dónde miran los modelos. Para eso usé **Grad-CAM**, que pinta de rojo las zonas que más influyeron en la decisión.
+
+**[Señala el caso de derrame]** Cuando hay derrame, los modelos miran justo donde está el problema.
+
+**[Señala el caso de infiltración]** Pero en otros casos miran las orillas de la imagen, o una etiqueta de texto que dice "PORTABLE".
+
+Eso es una alerta: un modelo puede acertar por las razones equivocadas. Que tenga buen puntaje no garantiza que esté viendo lo mismo que vería un médico.
 
 ### 10. Conclusiones (5:15–5:50)
-En resumen: con el mismo presupuesto, CNN, Transformer e híbrido rinden casi igual; con el dataset completo todos mejoran y ResNet18 gana por muy poco. La diferencia real está en el costo, donde ResNet18 es el más eficiente. Combinar los modelos sí mejora el desempeño, con 12k y con 112k. Y metodológicamente, evaluar por paciente, con umbrales en validación, intervalos de confianza y repitiendo el experimento, fue lo que evitó conclusiones engañosas.
+**Idea clave: tres mensajes para llevarse.**
 
-Como trabajo futuro: fine-tuning completo de toda la red sobre las 112 mil imágenes, preentrenamiento auto-supervisado y modelos multimodales con datos clínicos. Gracias.
+Para cerrar, me quedo con tres ideas:
+
+**Uno.** Con las mismas reglas, convolucional, Transformer e híbrido rinden casi igual. Con más datos todos mejoran, y ResNet gana por poco.
+
+**Dos.** Lo que sí marca la diferencia es **combinarlos**, y en la práctica, el **costo**, donde ResNet es el más eficiente.
+
+**Y tres.** **Medir bien importa tanto como el modelo.** Separar por paciente, usar intervalos de confianza y repetir el experimento me evitó sacar conclusiones equivocadas.
+
+Como siguientes pasos: reentrenar la red completa, aprovechar radiografías sin etiquetas y sumar datos clínicos del paciente.
+
+**[Pausa]** Muchas gracias. Quedo atento a sus preguntas.
 
 ---
 
