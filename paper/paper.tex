@@ -19,9 +19,9 @@
 
 \begin{document}
 
-\title{Comparación de DenseNet121, ResNet18 y ViT-B/16 para la clasificación multi-etiqueta de radiografías de tórax en NIH ChestX-ray14}
+\title{CNN, Transformer e híbrido CNN--Transformer para la clasificación multi-etiqueta de radiografías de tórax: comparación en NIH ChestX-ray14}
 
-\author{\IEEEauthorblockN{Alfredo Gallegos}
+\author{\IEEEauthorblockN{Alfredo Gallegos López}
 \IEEEauthorblockA{\textit{Maestría --- Deep Learning, Proyecto Final}\\
 Universidad Panamericana, Aguascalientes, México\\
 alfredo.gallegos.mtr@gmail.com}}
@@ -29,11 +29,11 @@ alfredo.gallegos.mtr@gmail.com}}
 \maketitle
 
 \begin{abstract}
-La interpretación automática de radiografías de tórax es una de las aplicaciones más estudiadas del aprendizaje profundo en imagen médica. En este trabajo se comparan tres arquitecturas preentrenadas en ImageNet ---dos redes convolucionales (DenseNet121 y ResNet18) y un Vision Transformer (ViT-B/16)--- en la clasificación multi-etiqueta de 14 hallazgos radiológicos del conjunto NIH ChestX-ray14, bajo un mismo protocolo experimental y un mismo presupuesto de entrenamiento: un subconjunto de 12{,}000 imágenes con partición por paciente, transferencia de aprendizaje con el backbone mayormente congelado y cinco épocas. Se evalúa el desempeño (AUROC por clase y promedio, F1 con umbral ajustado en validación, intervalos de confianza al 95\% por bootstrap y comparaciones pareadas), el costo computacional y la interpretabilidad (Grad-CAM y mapas de atención). ResNet18 obtuvo el mayor AUROC promedio (0.760; IC 95\%: 0.736--0.781), frente a 0.742 de DenseNet121 y 0.745 de ViT-B/16; solo la diferencia con DenseNet121 fue estadísticamente significativa. ViT-B/16 requirió 12 veces más parámetros que DenseNet121 y fue 13 veces más lento en inferencia que ResNet18 sin mejorar el desempeño, por lo que en este escenario las CNN ofrecen un mejor compromiso entre desempeño y costo.
+La interpretación automática de radiografías de tórax es una de las aplicaciones más estudiadas del aprendizaje profundo en imagen médica. En este trabajo se comparan cuatro arquitecturas preentrenadas en ImageNet ---dos redes convolucionales (DenseNet121 y ResNet18), un Vision Transformer (ViT-B/16) y un híbrido CNN--Transformer (MaxViT-T)--- y un ensemble de las cuatro en la clasificación multi-etiqueta de 14 hallazgos radiológicos del conjunto NIH ChestX-ray14, bajo un mismo protocolo experimental y un mismo presupuesto de entrenamiento: un subconjunto de 12{,}000 imágenes con partición por paciente, transferencia de aprendizaje con el backbone mayormente congelado y cinco épocas. Se evalúa el desempeño (AUROC por clase y promedio, F1 con umbral ajustado en validación, exactitud, intervalos de confianza al 95\% por bootstrap y comparaciones pareadas), el costo computacional, la convergencia y la interpretabilidad (Grad-CAM y mapas de atención). Los cuatro modelos individuales obtuvieron AUROC promedio estadísticamente indistinguibles (0.733--0.749), y una repetición independiente del experimento mostró variaciones del mismo orden, por lo que ninguna arquitectura domina con este presupuesto. El ensemble fue el único que superó con significancia a todos los modelos individuales (AUROC 0.767; IC 95\%: 0.740--0.791). En costo, ResNet18 fue el más eficiente, mientras que ViT-B/16 y MaxViT-T fueron unas 13 veces más lentos en inferencia sin mejorar el desempeño; el híbrido, además, seguía mejorando al final del entrenamiento, lo que sugiere que requiere un presupuesto mayor.
 \end{abstract}
 
 \begin{IEEEkeywords}
-radiografía de tórax, ChestX-ray14, clasificación multi-etiqueta, DenseNet, ResNet, Vision Transformer, transferencia de aprendizaje, Grad-CAM
+radiografía de tórax, ChestX-ray14, clasificación multi-etiqueta, DenseNet, ResNet, Vision Transformer, MaxViT, ensemble, transferencia de aprendizaje, Grad-CAM
 \end{IEEEkeywords}
 
 % =====================================================================
@@ -44,9 +44,9 @@ La radiografía de tórax es el estudio de imagen más solicitado en la práctic
 
 La publicación del conjunto NIH ChestX-ray14~\cite{wang2017chestxray}, con más de cien mil radiografías etiquetadas con 14 hallazgos, convirtió a este problema en un banco de pruebas estándar. Sobre él, las redes neuronales convolucionales (CNN) ---en particular DenseNet121 en el trabajo CheXNet~\cite{rajpurkar2017chexnet}--- se establecieron como la referencia. Más recientemente, los Vision Transformers (ViT)~\cite{dosovitskiy2021vit}, que sustituyen las convoluciones por mecanismos de auto-atención sobre parches de la imagen, han igualado o superado a las CNN en visión natural, pero a costa de más parámetros y de una mayor dependencia de grandes volúmenes de datos de preentrenamiento. Si esa ventaja se traslada a la radiografía de tórax, con datos limitados y etiquetas ruidosas, no es evidente.
 
-El objetivo de este trabajo es comparar, bajo un mismo protocolo experimental y un mismo presupuesto de cómputo, tres arquitecturas representativas: DenseNet121, ResNet18 y ViT-B/16. La comparación considera tres ejes: (i) desempeño de clasificación multi-etiqueta, con métricas apropiadas para clases fuertemente desbalanceadas e intervalos de confianza; (ii) costo computacional, y (iii) interpretabilidad de las predicciones mediante Grad-CAM~\cite{selvaraju2017gradcam} y mapas de atención~\cite{abnar2020rollout}.
+El objetivo de este trabajo es comparar, bajo un mismo protocolo experimental y un mismo presupuesto de cómputo, cuatro arquitecturas que representan los tres enfoques: dos CNN (DenseNet121 y ResNet18), un Transformer puro (ViT-B/16) y un híbrido CNN--Transformer (MaxViT-T), además de un ensemble que combina las cuatro. La comparación considera cuatro ejes: (i) desempeño de clasificación multi-etiqueta, con métricas apropiadas para clases fuertemente desbalanceadas e intervalos de confianza; (ii) costo computacional; (iii) facilidad de convergencia, y (iv) interpretabilidad de las predicciones mediante Grad-CAM~\cite{selvaraju2017gradcam} y mapas de atención~\cite{abnar2020rollout}.
 
-Las contribuciones son: un protocolo reproducible con partición por paciente (que evita la fuga de información entre entrenamiento y prueba); una evaluación que reporta AUROC por clase, F1 con umbrales elegidos en validación y comparaciones estadísticas pareadas entre modelos, y un análisis crítico del compromiso entre desempeño, costo e interpretabilidad de CNN y Transformers en este dominio.
+Las contribuciones son: un protocolo reproducible con partición por paciente (que evita la fuga de información entre entrenamiento y prueba); una evaluación que reporta AUROC por clase, F1 con umbrales elegidos en validación y comparaciones estadísticas pareadas entre modelos; una repetición independiente del experimento que permite dimensionar la variabilidad entre corridas, y un análisis crítico del compromiso entre desempeño, costo, convergencia e interpretabilidad de CNN, Transformers e híbridos en este dominio.
 
 % =====================================================================
 \section{Estado del arte}
@@ -60,6 +60,8 @@ ResNet~\cite{he2016resnet} introdujo las conexiones residuales, que permiten ent
 
 \subsection{Transformers en visión}
 El Transformer~\cite{vaswani2017attention} se basa por completo en auto-atención. El Vision Transformer (ViT)~\cite{dosovitskiy2021vit} lo aplica a imágenes dividiéndolas en parches de $16\times16$ píxeles, que se proyectan linealmente como tokens junto con un token de clase \texttt{[CLS]}. Al carecer de los sesgos inductivos de las convoluciones (localidad y equivarianza a traslaciones), el ViT requiere preentrenamiento a gran escala para superar a las CNN, pero a cambio modela relaciones globales desde las primeras capas. Raghu et~al.~\cite{raghu2021vit} mostraron que las representaciones de los ViT difieren cualitativamente de las de las CNN, con mayor uso de información global. En radiografía de tórax, Murphy et~al.~\cite{murphy2022vit} compararon Transformers (DeiT) con CNN como DenseNet121, ambos preentrenados en ImageNet, sobre ChestX-ray14 y MURA: los Transformers obtuvieron AUROC ligeramente menores ---diferencias que los autores consideran probablemente despreciables en la práctica clínica--- y una eficiencia de muestra similar a la de DenseNet121. Más recientemente, Yanar et~al.~\cite{yanar2025mamba} evaluaron 14 arquitecturas CNN, Transformer y Mamba en ChestX-ray14 bajo condiciones de entrenamiento idénticas; los mejores resultados correspondieron a modelos híbridos Transformer--CNN (ConvFormer, con AUROC promedio de 0.841), seguidos de cerca por la CNN EfficientNet.
+
+En conjunto, las arquitecturas más usadas en ChestX-ray14 siguen siendo las CNN preentrenadas en ImageNet ---sobre todo DenseNet121, a partir de CheXNet, y variantes de ResNet y EfficientNet---, porque sus sesgos inductivos (localidad y pesos compartidos) las hacen eficientes con conjuntos de datos médicos de tamaño moderado y porque la transferencia desde imágenes naturales funciona bien en radiografía. Los Transformers puros se adoptan por su capacidad de modelar contexto global, y los híbridos CNN--Transformer, como MaxViT~\cite{tu2022maxvit}, buscan combinar ambas ventajas: extracción local de características mediante convoluciones y atención a escala local y global.
 
 \subsection{Interpretabilidad}
 Grad-CAM~\cite{selvaraju2017gradcam} genera mapas de activación ponderando los mapas de características de una capa convolucional por el gradiente de la clase objetivo. En Transformers, los pesos de atención ofrecen una explicación natural, aunque la atención de una sola capa puede ser engañosa; el \emph{attention rollout}~\cite{abnar2020rollout} combina la atención de todas las capas teniendo en cuenta las conexiones residuales. En imagen médica, estas herramientas son especialmente relevantes porque los modelos pueden aprender atajos (\emph{shortcuts}) ---marcas del hospital, texto o dispositivos--- en lugar de los signos clínicos~\cite{zech2018variable,degrave2021shortcuts}.
@@ -103,8 +105,12 @@ Hernia & 12 & 1 & 8 \\
 \subsection{Preprocesamiento}
 Las radiografías originales ($1024\times1024$, escala de grises) se redimensionan a $224\times224$, se replican en tres canales y se normalizan con la media y desviación estándar de ImageNet. Como aumento de datos se usa únicamente el volteo horizontal aleatorio en entrenamiento.
 
+\textbf{Balanceo de clases.} No se aplicó sobremuestreo ni reponderación de la pérdida. En el problema multi-etiqueta una misma imagen puede contener hallazgos frecuentes y raros a la vez, por lo que el sobremuestreo por clase no está bien definido, y se buscó mantener una pérdida idéntica para todos los modelos. El desbalance se aborda en la evaluación: con una métrica insensible a la prevalencia (AUROC) y con un umbral de decisión por clase ajustado en validación (Sección~\ref{sec:evaluacion}). La reponderación de la pérdida se deja como trabajo futuro.
+
 \subsection{Modelos}
-Se usaron las implementaciones de \texttt{torchvision} con pesos preentrenados en ImageNet-1k: DenseNet121~\cite{huang2017densenet}, ResNet18~\cite{he2016resnet} y ViT-B/16~\cite{dosovitskiy2021vit} (12 bloques, 12 cabezas de atención, dimensión 768, 196 parches más el token \texttt{[CLS]}). En los tres se reemplazó la capa de clasificación por una capa lineal de 14 salidas y se congeló el backbone salvo su último bloque: el cuarto bloque denso y la normalización final en DenseNet121, el bloque \texttt{layer4} en ResNet18 y el último bloque del encoder en ViT-B/16. La Tabla~\ref{tab:params} resume el número de parámetros.
+Se usaron las implementaciones de \texttt{torchvision} con pesos preentrenados en ImageNet-1k de cuatro arquitecturas que cubren los tres enfoques: dos CNN, DenseNet121~\cite{huang2017densenet} y ResNet18~\cite{he2016resnet}; un Transformer puro, ViT-B/16~\cite{dosovitskiy2021vit} (12 bloques, 12 cabezas de atención, dimensión 768, 196 parches más el token \texttt{[CLS]}), y un híbrido CNN--Transformer, MaxViT-T~\cite{tu2022maxvit}, cuyas etapas combinan bloques convolucionales MBConv con auto-atención local (por bloques de la imagen) y global dispersa (por una rejilla que recorre toda la imagen). En todos se reemplazó la capa de clasificación por una capa lineal de 14 salidas y se congeló el backbone salvo su último bloque: el cuarto bloque denso y la normalización final en DenseNet121, el bloque \texttt{layer4} en ResNet18, el último bloque del encoder en ViT-B/16 y la última capa MaxViT de la última etapa en MaxViT-T (la etapa completa tiene 17.5M parámetros; descongelar solo su última capa mantiene una capacidad entrenable comparable a la de los demás modelos). La Tabla~\ref{tab:params} resume el número de parámetros.
+
+Además, se evaluó un \emph{ensemble} que promedia las probabilidades de los cuatro modelos, sin entrenamiento adicional.
 
 \begin{table}[t]
 \centering
@@ -117,23 +123,25 @@ Modelo & Totales & Entrenables \\
 DenseNet121 & 6.97 & 2.17 \\
 ResNet18 & 11.18 & 8.40 \\
 ViT-B/16 & 85.81 & 7.10 \\
+MaxViT-T (híbrido) & 30.41 & 9.23 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \subsection{Entrenamiento}
-Los tres modelos se entrenaron con el mismo protocolo: pérdida de entropía cruzada binaria sobre las 14 salidas,
+Los cuatro modelos se entrenaron con el mismo protocolo: pérdida de entropía cruzada binaria sobre las 14 salidas,
 \begin{equation}
 \mathcal{L} = -\frac{1}{14}\sum_{c=1}^{14}\left[y_c\log\sigma(z_c) + (1-y_c)\log\left(1-\sigma(z_c)\right)\right],
 \end{equation}
-donde $z_c$ es el logit de la clase $c$ y $\sigma$ la función sigmoide; optimizador Adam~\cite{kingma2015adam} con tasa de aprendizaje $10^{-4}$, lotes de 32 imágenes y 5 épocas. Al final del entrenamiento se restauran los pesos de la época con menor pérdida de validación. Todos los experimentos usan la misma semilla y la misma partición. Se implementaron en PyTorch~\cite{paszke2019pytorch} y se ejecutaron en una GPU AMD Radeon RX 6800 XT (16\,GB) mediante ROCm.
+donde $z_c$ es el logit de la clase $c$ y $\sigma$ la función sigmoide; optimizador Adam~\cite{kingma2015adam} con tasa de aprendizaje $10^{-4}$, lotes de 32 imágenes y 5 épocas. Al final del entrenamiento se restauran los pesos de la época con menor pérdida de validación. Todos los experimentos usan la misma semilla y la misma partición. Se implementaron en PyTorch~\cite{paszke2019pytorch} y se ejecutaron en una GPU AMD Radeon RX 6800 XT (16\,GB) mediante ROCm. Al final de cada época se guarda un punto de control (pesos, optimizador e historial), de modo que una interrupción del equipo permite reanudar el entrenamiento sin repetirlo; esto ocurrió una vez, durante el entrenamiento de ViT-B/16.
 
 \subsection{Evaluación}
+\label{sec:evaluacion}
 La métrica principal es el área bajo la curva ROC (AUROC) por clase y su promedio sobre las 14 clases, que no depende de un umbral de decisión y es la métrica estándar en este conjunto~\cite{wang2017chestxray,rajpurkar2017chexnet}. Dado que la prevalencia de cada hallazgo va de menos del 1\% a cerca del 18\%, un umbral fijo de 0.5 produce muy pocas predicciones positivas; por ello, el umbral de cada clase se elige maximizando su F1 en el conjunto de \textbf{validación} y se aplica sin cambios al conjunto de prueba, donde se reportan F1 macro y micro. La exactitud por etiqueta se reporta solo como referencia, junto a la de un clasificador trivial que predice siempre ``sin hallazgo''.
 
-Para cuantificar la incertidumbre se calcularon intervalos de confianza al 95\% mediante bootstrap~\cite{efron1993bootstrap} con 1000 remuestreos del conjunto de prueba. Los mismos remuestreos se aplicaron a los tres modelos, lo que permite comparaciones pareadas: la diferencia entre dos modelos se considera significativa si su intervalo de confianza no incluye el cero.
+Para cuantificar la incertidumbre se calcularon intervalos de confianza al 95\% mediante bootstrap~\cite{efron1993bootstrap} con 1000 remuestreos del conjunto de prueba. Los mismos remuestreos se aplicaron a todos los modelos y al ensemble, lo que permite comparaciones pareadas: la diferencia entre dos modelos se considera significativa si su intervalo de confianza no incluye el cero.
 
-El costo computacional se midió como número de parámetros, tiempo promedio por época (entrenamiento más validación), memoria pico de GPU durante el entrenamiento y velocidad de inferencia (imágenes por segundo, lotes de 32 ya cargados en la GPU). Antes de medir se realizó un paso de calentamiento, y cada modelo se retiró de la GPU al terminar para que la memoria medida corresponda únicamente al modelo en curso.
+El ensemble recibe su propio umbral por clase, elegido en validación del mismo modo. El costo computacional se midió como número de parámetros, tiempo total de entrenamiento (cinco épocas) y tiempo promedio por época (entrenamiento más validación), memoria pico de GPU durante el entrenamiento y velocidad de inferencia (imágenes por segundo, lotes de 32 ya cargados en la GPU). Antes de medir se realizó un paso de calentamiento, y cada modelo se retiró de la GPU al terminar para que la memoria medida corresponda únicamente al modelo en curso.
 
 \subsection{Interpretabilidad}
 Para las CNN se usó Grad-CAM~\cite{selvaraju2017gradcam} sobre la última capa convolucional, tomando como objetivo la clase real de la imagen. Dados los mapas de características $A^k$ y el logit $y^c$, el mapa es
@@ -147,49 +155,55 @@ Para el ViT se visualizan la atención del token \texttt{[CLS]} hacia los parche
 % =====================================================================
 
 \subsection{Desempeño de clasificación}
-La Tabla~\ref{tab:resultados} resume el desempeño en el conjunto de prueba (1{,}802 imágenes de 1{,}166 pacientes). ResNet18 obtuvo el mayor AUROC promedio (0.760), seguido de ViT-B/16 (0.745) y DenseNet121 (0.742). Las diferencias son pequeñas y sus intervalos de confianza se traslapan. En la comparación pareada, solo la ventaja de ResNet18 sobre DenseNet121 es significativa, tanto en AUROC ($+0.018$; IC 95\%: 0.001--0.035) como en F1 micro ($+0.016$; IC 95\%: 0.001--0.029). Entre ResNet18 y ViT-B/16 ($+0.015$ en AUROC; IC 95\%: $-0.004$--0.035) y entre ViT-B/16 y DenseNet121 ($+0.003$) no hay diferencias significativas, y el F1 macro es prácticamente idéntico en los tres (0.185--0.186).
+La Tabla~\ref{tab:resultados} resume el desempeño en el conjunto de prueba (1{,}802 imágenes de 1{,}166 pacientes). Los cuatro modelos individuales obtienen AUROC promedio muy cercanos: ResNet18 (0.749), DenseNet121 (0.745), ViT-B/16 (0.742) y MaxViT-T (0.733). En la comparación pareada por bootstrap, ninguna diferencia de AUROC entre modelos individuales es significativa. Sí lo son algunas diferencias de F1: MaxViT-T obtiene un F1 macro menor que los otros tres modelos (entre $-0.016$ y $-0.025$), y ViT-B/16 un F1 micro mayor que DenseNet121 y MaxViT-T ($+0.021$ y $+0.022$).
 
-La exactitud por etiqueta de los tres modelos (0.950) es igual a la del clasificador trivial que nunca predice un hallazgo (0.950), lo que confirma que no es una métrica informativa en este problema. Del mismo modo, con un umbral fijo de 0.5 el F1 macro es de apenas 0.012--0.037; al elegir el umbral de cada clase en validación sube a 0.185--0.186.
+El ensemble de los cuatro modelos es el único que supera con significancia a todos los modelos individuales: su AUROC promedio (0.767) es mayor que el de cada uno, con diferencias de $+0.018$ (IC 95\%: 0.005--0.032) frente a ResNet18 hasta $+0.034$ (0.023--0.045) frente a MaxViT-T, y su F1 micro (0.310) supera al de todos por entre 0.036 y 0.057.
+
+La exactitud por etiqueta de todos los modelos (0.950) es igual a la del clasificador trivial que nunca predice un hallazgo (0.950), lo que confirma que no es una métrica informativa en este problema. Del mismo modo, con un umbral fijo de 0.5 el F1 macro es de apenas 0.020--0.041; al elegir el umbral de cada clase en validación sube a 0.172--0.204.
 
 \begin{table*}[t]
 \centering
-\caption{Desempeño en el conjunto de prueba (IC al 95\% por bootstrap entre corchetes). F1 con umbral por clase elegido en validación.}
+\caption{Desempeño en el conjunto de prueba (IC al 95\% por bootstrap entre corchetes). F1 con umbral por clase elegido en validación; exactitud y F1 @0.5 con umbral fijo de 0.5.}
 \label{tab:resultados}
-\begin{tabular}{lccccc}
+\begin{tabular}{lcccccc}
 \toprule
-Modelo & AUROC macro & F1 macro & F1 micro & F1 macro @0.5 & Mejor época \\
+Modelo & AUROC macro & F1 macro & F1 micro & F1 macro @0.5 & Exactitud @0.5 & Mejor época \\
 \midrule
-DenseNet121 & 0.742 [0.717, 0.767] & 0.185 [0.168, 0.201] & 0.248 [0.231, 0.266] & 0.012 & 2 \\
-ResNet18 & \textbf{0.760} [0.736, 0.781] & 0.186 [0.165, 0.204] & \textbf{0.264} [0.245, 0.283] & 0.037 & 2 \\
-ViT-B/16 & 0.745 [0.718, 0.769] & 0.186 [0.166, 0.204] & 0.249 [0.232, 0.265] & 0.016 & 3 \\
+DenseNet121 & 0.745 [0.721, 0.768] & 0.188 [0.171, 0.203] & 0.253 [0.236, 0.270] & 0.021 & 0.950 & 3 \\
+ResNet18 & 0.749 [0.725, 0.771] & 0.197 [0.175, 0.219] & 0.266 [0.246, 0.286] & 0.041 & 0.950 & 2 \\
+ViT-B/16 & 0.742 [0.717, 0.766] & 0.194 [0.173, 0.213] & 0.274 [0.256, 0.293] & 0.027 & 0.950 & 3 \\
+MaxViT-T (híbrido) & 0.733 [0.705, 0.759] & 0.172 [0.157, 0.186] & 0.252 [0.235, 0.270] & 0.029 & 0.950 & 5 \\
+\midrule
+Ensemble (4 modelos) & \textbf{0.767} [0.740, 0.791] & \textbf{0.204} [0.184, 0.224] & \textbf{0.310} [0.290, 0.329] & 0.020 & 0.950 & -- \\
 \bottomrule
 \end{tabular}
 \end{table*}
 
-La Fig.~\ref{fig:auroc} y la Tabla~\ref{tab:auroc} muestran el AUROC por clase. La variación entre hallazgos es mucho mayor que entre modelos: Emphysema, Edema y Effusion superan 0.82 en los tres modelos, mientras que Nodule, Infiltration y Pneumonia quedan por debajo de 0.69. La mayor diferencia entre arquitecturas aparece en Cardiomegaly (0.663 en DenseNet121 frente a 0.775 en ResNet18). Las clases con pocos positivos en prueba, como Hernia ($n=8$) y Pneumonia ($n=15$), tienen estimaciones inestables.
+La Fig.~\ref{fig:auroc} y la Tabla~\ref{tab:auroc} muestran el AUROC por clase. La variación entre hallazgos es mucho mayor que entre modelos: Emphysema, Edema y Effusion superan 0.80 en todos los modelos, mientras que Nodule, Infiltration y Pneumonia no superan 0.69 en ninguno, ni siquiera en el ensemble. El ensemble obtiene el mejor valor en ocho de los catorce hallazgos. Las mayores diferencias entre arquitecturas aparecen en Cardiomegaly (0.636 en MaxViT-T frente a 0.755 en ResNet18), Emphysema (0.806 frente a 0.877) y Mass (0.702 en ViT-B/16 frente a 0.766 en ResNet18). Las clases con pocos positivos en prueba, como Hernia ($n=8$) y Pneumonia ($n=15$), tienen estimaciones inestables.
 
 \begin{table}[t]
 \centering
-\caption{AUROC por clase en prueba ($n$ = positivos en prueba).}
+\caption{AUROC por clase en prueba ($n$ = positivos en prueba). D: DenseNet121, R: ResNet18, V: ViT-B/16, M: MaxViT-T, E: ensemble.}
 \label{tab:auroc}
-\begin{tabular}{lrccc}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lrccccc}
 \toprule
-Hallazgo & $n$ & DenseNet & ResNet & ViT \\
+Hallazgo & $n$ & D & R & V & M & E \\
 \midrule
-Emphysema & 26 & 0.880 & \textbf{0.890} & 0.864 \\
-Edema & 35 & 0.851 & \textbf{0.872} & 0.841 \\
-Effusion & 209 & 0.823 & \textbf{0.831} & 0.828 \\
-Pneumothorax & 84 & 0.765 & \textbf{0.798} & 0.769 \\
-Fibrosis & 33 & 0.771 & \textbf{0.782} & 0.755 \\
-Atelectasis & 181 & 0.751 & \textbf{0.766} & 0.756 \\
-Consolidation & 54 & 0.749 & \textbf{0.765} & 0.729 \\
-Hernia & 8 & 0.722 & 0.728 & \textbf{0.780} \\
-Mass & 94 & 0.736 & \textbf{0.759} & 0.728 \\
-Pleural\_Thickening & 51 & \textbf{0.747} & 0.720 & 0.730 \\
-Cardiomegaly & 42 & 0.663 & \textbf{0.775} & 0.751 \\
-Infiltration & 324 & 0.657 & 0.661 & \textbf{0.680} \\
-Nodule & 95 & \textbf{0.656} & 0.635 & 0.651 \\
-Pneumonia & 15 & 0.612 & \textbf{0.652} & 0.563 \\
+Emphysema & 26 & 0.877 & 0.877 & 0.869 & 0.806 & \textbf{0.895} \\
+Edema & 35 & 0.856 & \textbf{0.876} & 0.838 & 0.831 & 0.871 \\
+Effusion & 209 & 0.837 & 0.843 & 0.844 & 0.822 & \textbf{0.858} \\
+Pneumothorax & 84 & 0.759 & 0.795 & 0.785 & 0.768 & \textbf{0.807} \\
+Fibrosis & 33 & 0.760 & \textbf{0.791} & 0.748 & 0.756 & 0.789 \\
+Atelectasis & 181 & 0.759 & 0.762 & 0.759 & 0.756 & \textbf{0.783} \\
+Mass & 94 & 0.765 & 0.766 & 0.702 & 0.760 & \textbf{0.775} \\
+Consolidation & 54 & \textbf{0.760} & 0.738 & 0.713 & 0.748 & 0.755 \\
+Pleural\_Thick. & 51 & 0.757 & 0.728 & 0.731 & 0.726 & \textbf{0.766} \\
+Hernia & 8 & 0.691 & 0.673 & 0.738 & \textbf{0.784} & 0.756 \\
+Cardiomegaly & 42 & 0.667 & \textbf{0.755} & 0.735 & 0.636 & 0.726 \\
+Infiltration & 324 & 0.665 & 0.668 & 0.677 & 0.666 & \textbf{0.683} \\
+Nodule & 95 & 0.632 & 0.610 & 0.644 & 0.648 & \textbf{0.660} \\
+Pneumonia & 15 & \textbf{0.651} & 0.608 & 0.608 & 0.558 & 0.615 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -201,8 +215,11 @@ Pneumonia & 15 & 0.612 & \textbf{0.652} & 0.563 \\
 \label{fig:auroc}
 \end{figure}
 
+\subsection{Reproducibilidad entre corridas}
+Los tres primeros modelos se entrenaron también en una corrida previa e independiente, con el mismo protocolo y la misma partición. En ella, el orden fue distinto: ResNet18 obtuvo 0.760, ViT-B/16 0.745 y DenseNet121 0.742, y la ventaja de ResNet18 sobre DenseNet121 (+0.018) resultó significativa. En la corrida actual esa ventaja se reduce a +0.004 y deja de serlo. Las variaciones entre corridas (hasta 0.010 de AUROC en ResNet18) son del mismo orden que las diferencias entre arquitecturas, lo que muestra que, con una sola semilla, esas diferencias no son robustas.
+
 \subsection{Convergencia}
-La Fig.~\ref{fig:curvas} muestra la pérdida de validación por época. DenseNet121 y ResNet18 alcanzan su mínimo en la época 2 y ViT-B/16 en la época 3. ResNet18, el modelo con más parámetros entrenables (8.4M), se sobreajusta claramente a partir de la época 3: su pérdida de entrenamiento cae de 0.153 a 0.084 mientras la de validación sube de 0.173 a 0.203. DenseNet121 y ViT-B/16 se mantienen estables, con un aumento leve de la pérdida de validación al final.
+La Fig.~\ref{fig:curvas} muestra la pérdida de validación por época. ResNet18 alcanza su mínimo en la época 2, DenseNet121 y ViT-B/16 en la 3, y MaxViT-T en la 5, la última. ResNet18 se sobreajusta claramente a partir de la época 3: su pérdida de entrenamiento cae de 0.155 a 0.088 mientras la de validación sube de 0.174 a 0.196. DenseNet121 y ViT-B/16 se mantienen estables. MaxViT-T es el único modelo cuya pérdida de validación sigue bajando en todas las épocas, y su pérdida de entrenamiento (0.162 al final) es la más alta de los cuatro: no llegó a converger con el presupuesto de cinco épocas.
 
 \begin{figure}[t]
 \centering
@@ -212,19 +229,21 @@ La Fig.~\ref{fig:curvas} muestra la pérdida de validación por época. DenseNet
 \end{figure}
 
 \subsection{Costo computacional}
-La Tabla~\ref{tab:costo} y la Fig.~\ref{fig:costo} resumen el costo. ViT-B/16 tiene 12.3 veces los parámetros de DenseNet121, usa 2.3 veces la memoria de GPU de ResNet18 durante el entrenamiento y procesa 359 imágenes por segundo en inferencia, frente a 4{,}653 de ResNet18 (13 veces más) y 1{,}145 de DenseNet121. El tiempo por época es más parecido entre modelos porque en las CNN lo domina la lectura y decodificación de las imágenes de $1024\times1024$, no el cómputo en la GPU.
+La Tabla~\ref{tab:costo} y la Fig.~\ref{fig:costo} resumen el costo. ViT-B/16 tiene 12.3 veces los parámetros de DenseNet121 y MaxViT-T 4.4 veces. En inferencia, ResNet18 procesa 4{,}754 imágenes por segundo, frente a 1{,}156 de DenseNet121, 373 de MaxViT-T y 360 de ViT-B/16 (unas 13 veces menos que ResNet18). MaxViT-T es el que más memoria de GPU usa durante el entrenamiento (1{,}315\,MB, 3.1 veces la de ResNet18). El tiempo por época es más parecido entre modelos porque en las CNN lo domina la lectura y decodificación de las imágenes de $1024\times1024$, no el cómputo en la GPU. El ensemble no requiere entrenamiento adicional, pero en inferencia necesita ejecutar los cuatro modelos: su costo es la suma de los cuatro (134.4M parámetros, alrededor de 150 imágenes por segundo).
 
 \begin{table}[t]
 \centering
-\caption{Costo computacional (lotes de 32, $224\times224$).}
+\caption{Costo computacional (lotes de 32, $224\times224$). Tiempo total: cinco épocas de entrenamiento más validación.}
 \label{tab:costo}
-\begin{tabular}{lrrr}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lrrrr}
 \toprule
-Modelo & s/época & Memoria (MB) & Inferencia (img/s) \\
+Modelo & Total (s) & s/época & Memoria (MB) & Inferencia (img/s) \\
 \midrule
-DenseNet121 & 41.3 & 442 & 1{,}145 \\
-ResNet18 & 44.3 & 418 & 4{,}653 \\
-ViT-B/16 & 57.8 & 980 & 359 \\
+DenseNet121 & 190 & 38.0 & 442 & 1{,}156 \\
+ResNet18 & 187 & 37.5 & 418 & 4{,}754 \\
+ViT-B/16 & 275 & 55.0 & 980 & 360 \\
+MaxViT-T & 215 & 43.1 & 1{,}315 & 373 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -237,14 +256,14 @@ ViT-B/16 & 57.8 & 980 & 359 \\
 \end{figure*}
 
 \subsection{Interpretabilidad}
-Las Figs.~\ref{fig:gradcam} y~\ref{fig:atencion} muestran tres imágenes de prueba con un solo hallazgo. En el caso de Effusion, ambas CNN asignan una probabilidad alta (0.71 y 0.88) y concentran el Grad-CAM en la región torácica inferior, compatible con el hallazgo. En el caso de Infiltration, en cambio, los mapas se concentran en el borde superior de la imagen ---donde aparece la marca de texto ``PORTABLE''--- y fuera de los campos pulmonares, un patrón compatible con el aprendizaje de atajos descrito en la literatura~\cite{zech2018variable,degrave2021shortcuts}. En el caso de Atelectasis, con probabilidades de 0.04, el mapa de ResNet18 queda vacío. Para ViT-B/16, la atención del último bloque en el caso de Infiltration sí recorre ambos campos pulmonares, mientras que el rollout concentra buena parte de la relevancia en las esquinas de la imagen, un artefacto conocido de los mapas de atención que obliga a interpretarlos con cautela.
+Las Figs.~\ref{fig:gradcam} y~\ref{fig:atencion} muestran tres imágenes de prueba con un solo hallazgo. En el caso de Effusion, los tres modelos con mapas espaciales asignan probabilidades altas (0.60--0.78); DenseNet121 y ResNet18 concentran el Grad-CAM en la región torácica central e inferior, compatible con el hallazgo, mientras que MaxViT-T se concentra en la zona pulmonar superior. En el caso de Infiltration, con probabilidades bajas (0.05--0.21), los mapas se concentran en el borde superior ---donde aparece la marca de texto ``PORTABLE''---, en las esquinas o en el borde lateral de la imagen, fuera de los campos pulmonares, un patrón compatible con el aprendizaje de atajos descrito en la literatura~\cite{zech2018variable,degrave2021shortcuts}. Para ViT-B/16, la atención del último bloque en el caso de Infiltration sí recorre ambos campos pulmonares, mientras que el rollout concentra buena parte de la relevancia en las esquinas de la imagen, un artefacto conocido de los mapas de atención que obliga a interpretarlos con cautela.
 
-\begin{figure}[t]
+\begin{figure*}[t]
 \centering
-\includegraphics[width=\columnwidth]{gradcam_examples.png}
-\caption{Grad-CAM de DenseNet121 y ResNet18 para la clase real de cada imagen, con la probabilidad asignada por cada modelo.}
+\includegraphics[width=0.85\textwidth]{gradcam_examples.png}
+\caption{Grad-CAM de DenseNet121, ResNet18 y MaxViT-T (híbrido) para la clase real de cada imagen, con la probabilidad asignada por cada modelo.}
 \label{fig:gradcam}
-\end{figure}
+\end{figure*}
 
 \begin{figure}[t]
 \centering
@@ -257,28 +276,34 @@ Las Figs.~\ref{fig:gradcam} y~\ref{fig:atencion} muestran tres imágenes de prue
 \section{Discusión}
 % =====================================================================
 
-\textbf{El Transformer no aporta ventaja en este régimen.} Con 8{,}400 imágenes de entrenamiento, el backbone casi congelado y preentrenamiento en ImageNet-1k, ViT-B/16 no supera a las CNN: su AUROC es estadísticamente indistinguible del de DenseNet121 y ResNet18. Esto es consistente con la observación de que los ViT, al carecer de los sesgos inductivos de las convoluciones, necesitan más datos para superarlas~\cite{dosovitskiy2021vit}, y con estudios previos en radiografía de tórax en los que Transformers y CNN obtienen AUROC muy cercanos~\cite{murphy2022vit} o en los que la ventaja corresponde a diseños híbridos y no a Transformers puros~\cite{yanar2025mamba}. Su curva de validación, sin embargo, es la más estable y su mejor época es la tercera, lo que sugiere que podría beneficiarse más que las CNN de más datos o más épocas.
+\textbf{Ninguna arquitectura domina con este presupuesto.} Con 8{,}400 imágenes de entrenamiento, el backbone casi congelado y cinco épocas, los cuatro modelos son estadísticamente indistinguibles en AUROC, y la repetición del experimento cambia su orden. Esto es consistente con estudios previos en radiografía de tórax en los que Transformers y CNN obtienen AUROC muy cercanos~\cite{murphy2022vit}. La diferencia real entre arquitecturas, en este régimen, está en el costo y en la convergencia, no en el desempeño.
 
-\textbf{El compromiso desempeño--costo favorece a ResNet18.} El modelo más pequeño en cómputo obtuvo el mejor AUROC, la mayor velocidad de inferencia y la menor memoria. DenseNet121 tiene menos parámetros, pero sus concatenaciones densas lo hacen cuatro veces más lento que ResNet18 en inferencia. ViT-B/16 es el más costoso en todas las métricas sin mejorar el desempeño.
+\textbf{El Transformer puro no aporta ventaja.} ViT-B/16 no supera a las CNN, como cabe esperar de un modelo que, al carecer de los sesgos inductivos de las convoluciones, necesita más datos para superarlas~\cite{dosovitskiy2021vit}. Su curva de validación es, sin embargo, estable, y obtiene el mejor F1 micro entre los modelos individuales.
 
-\textbf{La capacidad entrenable explica el sobreajuste.} Aunque el protocolo es idéntico, descongelar el último bloque de cada modelo da 2.2M, 8.4M y 7.1M parámetros entrenables. ResNet18, el de mayor capacidad, aprende más rápido y se sobreajusta desde la época 3; restaurar la mejor época es lo que le permite obtener el mejor resultado. Evaluar en la última época habría penalizado justamente al mejor modelo.
+\textbf{El híbrido necesita más presupuesto.} Yanar et~al.~\cite{yanar2025mamba} encontraron que los híbridos CNN--Transformer son los mejores en ChestX-ray14, pero con entrenamiento completo. Aquí, MaxViT-T obtuvo el AUROC más bajo y un F1 macro significativamente menor. Sus curvas explican por qué: es el único modelo que seguía mejorando en la quinta época y el que menos ajustó el conjunto de entrenamiento. Con solo la última capa descongelada y cinco épocas, el híbrido no alcanzó a adaptar sus representaciones; la comparación justa con las CNN requeriría más épocas o afinar más capas.
 
-\textbf{La evaluación cambia las conclusiones.} La exactitud por etiqueta es igual a la de un clasificador trivial y el F1 con umbral 0.5 es casi nulo; con estas métricas los tres modelos parecerían inútiles o equivalentes. El AUROC y el F1 con umbral elegido en validación sí permiten compararlos, y los intervalos de confianza muestran que la mayoría de las diferencias observadas no son significativas.
+\textbf{El ensemble es la variante más efectiva.} Promediar los cuatro modelos mejora significativamente el AUROC y el F1 respecto a cada modelo individual, sin entrenamiento adicional. Que modelos con desempeño casi igual mejoren al combinarse indica que cometen errores distintos: CNN, Transformer e híbrido aprenden representaciones complementarias. El costo es ejecutar los cuatro modelos en inferencia (unas 30 veces más lento que ResNet18 solo).
 
-\textbf{La dificultad depende del hallazgo.} Los hallazgos extensos y bien definidos (Emphysema, Edema, Effusion) se detectan mucho mejor que los pequeños (Nodule) o los de definición radiológica ambigua y solapada (Infiltration, Pneumonia), en los tres modelos por igual. Esto sugiere que el límite está más en la resolución y en la calidad de las etiquetas que en la arquitectura. Los valores absolutos son menores que los de CheXNet ($\approx$0.84), que usó el conjunto completo y afinó toda la red.
+\textbf{El compromiso desempeño--costo favorece a ResNet18.} Entre los modelos individuales, ResNet18 tiene el AUROC más alto (sin diferencia significativa), la mayor velocidad de inferencia y la menor memoria. ViT-B/16 y MaxViT-T son unas 13 veces más lentos en inferencia y usan entre 2.3 y 3.1 veces más memoria sin rendir más.
 
-\textbf{Los mapas de interpretabilidad revelan posibles atajos.} Que los modelos se fijen en marcas de texto o bordes de la imagen en algunos casos es una advertencia práctica: un buen AUROC no garantiza que el modelo use los signos clínicos correctos.
+\textbf{La capacidad entrenable explica el sobreajuste.} Aunque el protocolo es idéntico, descongelar el último bloque de cada modelo da 2.2M, 8.4M, 7.1M y 9.2M parámetros entrenables. ResNet18 aprende más rápido y se sobreajusta desde la época 3; restaurar la mejor época evita evaluarlo sobreajustado. MaxViT-T, con capacidad similar, muestra el problema opuesto: subajuste.
+
+\textbf{Generalización.} La partición por paciente garantiza que todas las métricas corresponden a pacientes no vistos. La brecha entre entrenamiento y validación es moderada en todos los modelos salvo ResNet18 en las últimas épocas, y la selección de la mejor época en validación la controla. Sin embargo, todos los modelos se evaluaron en un solo hospital y conjunto de datos; la generalización a otros centros, equipos o poblaciones ---donde los atajos detectados en los mapas de interpretabilidad dejarían de funcionar~\cite{zech2018variable}--- no está evaluada.
+
+\textbf{La evaluación cambia las conclusiones.} La exactitud por etiqueta es igual a la de un clasificador trivial y el F1 con umbral 0.5 es casi nulo; con estas métricas todos los modelos parecerían equivalentes o inútiles. El AUROC, el F1 con umbral elegido en validación, los intervalos de confianza y la repetición del experimento muestran qué diferencias son reales (las del ensemble) y cuáles no (las de los modelos individuales entre sí).
+
+\textbf{La dificultad depende del hallazgo.} Los hallazgos extensos y bien definidos (Emphysema, Edema, Effusion) se detectan mucho mejor que los pequeños (Nodule) o los de definición radiológica ambigua y solapada (Infiltration, Pneumonia), en todos los modelos. Esto sugiere que el límite está más en la resolución y en la calidad de las etiquetas que en la arquitectura. Los valores absolutos son menores que los de CheXNet ($\approx$0.84), que usó el conjunto completo y afinó toda la red.
 
 \subsection{Limitaciones}
-Se usó un subconjunto aleatorio de 12{,}000 imágenes ($\approx$11\% del conjunto) por restricciones de cómputo y tiempo. Las etiquetas de ChestX-ray14 se extrajeron automáticamente de reportes, por lo que contienen ruido~\cite{oakdenrayner2020exploring}; parte del error medido es ruido de etiqueta y no del modelo. El presupuesto de entrenamiento (cinco épocas y backbone mayormente congelado) impide comparar los valores absolutos con trabajos que afinan la red completa; el objetivo aquí es comparar arquitecturas en igualdad de condiciones. Aunque el protocolo es común, el número de parámetros entrenables difiere entre modelos. Se usó una sola semilla: los intervalos de confianza reflejan la variabilidad del conjunto de prueba, no la del entrenamiento. Las clases raras (Hernia, Pneumonia) tienen muy pocos positivos y pesan igual que las demás en los promedios macro. La reducción a $224\times224$ puede eliminar detalle relevante para hallazgos pequeños, y el volteo horizontal invierte la lateralidad anatómica (por ejemplo, la posición del corazón), lo que podría afectar a hallazgos con lateralidad característica como Cardiomegaly. La ejecución en una GPU AMD con ROCm, sin la implementación de atención eficiente en memoria, hace que el tiempo y la memoria del ViT sean pesimistas frente a una GPU NVIDIA. Finalmente, los ejemplos de interpretabilidad son cualitativos.
+Se usó un subconjunto aleatorio de 12{,}000 imágenes ($\approx$11\% del conjunto) por restricciones de cómputo y tiempo: un intento de entrenar con el conjunto completo no pudo completarse por apagados del equipo bajo carga sostenida de la GPU. Las etiquetas de ChestX-ray14 se extrajeron automáticamente de reportes, por lo que contienen ruido~\cite{oakdenrayner2020exploring}. El presupuesto de entrenamiento (cinco épocas y backbone mayormente congelado) penaliza especialmente al híbrido, que no llegó a converger, e impide comparar los valores absolutos con trabajos que afinan la red completa. El número de parámetros entrenables difiere entre modelos. Cada corrida usa una sola semilla; los intervalos de confianza reflejan la variabilidad del conjunto de prueba, y la repetición del experimento indica que la variabilidad del entrenamiento es del mismo orden que las diferencias entre modelos individuales. Las clases raras (Hernia, Pneumonia) tienen muy pocos positivos y pesan igual que las demás en los promedios macro. La reducción a $224\times224$ puede eliminar detalle relevante para hallazgos pequeños, y el volteo horizontal invierte la lateralidad anatómica (por ejemplo, la posición del corazón), lo que podría afectar a hallazgos como Cardiomegaly. La ejecución en una GPU AMD con ROCm, sin la implementación de atención eficiente en memoria, hace que el tiempo y la memoria de los modelos con atención sean pesimistas frente a una GPU NVIDIA. Finalmente, los ejemplos de interpretabilidad son cualitativos.
 
 % =====================================================================
 \section{Conclusiones}
 % =====================================================================
 
-Bajo un mismo protocolo y presupuesto, las tres arquitecturas alcanzan un desempeño muy similar en ChestX-ray14 (AUROC promedio de 0.742 a 0.760), y la única diferencia significativa favorece a ResNet18 sobre DenseNet121. ViT-B/16 no mejora a las CNN y es el más costoso: 12 veces más parámetros que DenseNet121 y 13 veces más lento en inferencia que ResNet18. En este escenario, ResNet18 es la opción más eficiente. Metodológicamente, la partición por paciente, la elección de umbrales en validación y los intervalos de confianza fueron decisivos para obtener conclusiones correctas, y los mapas de interpretabilidad muestran que los modelos pueden apoyarse en atajos ajenos a la anatomía.
+Bajo un mismo protocolo y presupuesto, dos CNN, un Transformer puro y un híbrido CNN--Transformer alcanzan un desempeño estadísticamente indistinguible en ChestX-ray14 (AUROC promedio de 0.733 a 0.749), y la repetición del experimento muestra que su orden no es estable. En cambio, el ensemble de los cuatro modelos mejora de forma significativa a todos ellos (AUROC 0.767), lo que indica que las arquitecturas aprenden representaciones complementarias. En costo, ResNet18 es la opción individual más eficiente; ViT-B/16 y MaxViT-T son unas 13 veces más lentos en inferencia sin rendir más, y el híbrido requiere más entrenamiento del que este presupuesto permite. Metodológicamente, la partición por paciente, la elección de umbrales en validación, los intervalos de confianza y la repetición del experimento fueron decisivos para no sobreinterpretar diferencias pequeñas, y los mapas de interpretabilidad muestran que los modelos pueden apoyarse en atajos ajenos a la anatomía.
 
-Como trabajo futuro se propone entrenar con el conjunto completo, afinar la red completa durante más épocas, repetir los experimentos con varias semillas, usar mayor resolución, emplear funciones de pérdida que compensen el desbalance de clases y evaluar cuantitativamente la localización de los mapas de interpretabilidad con las cajas delimitadoras que ChestX-ray14 incluye para un subconjunto de imágenes.
+Como trabajo futuro se proponen tres líneas. (i) \emph{Más datos y mejor entrenamiento}: entrenar con el conjunto completo, afinar la red completa durante más épocas, repetir los experimentos con varias semillas, usar mayor resolución y emplear funciones de pérdida que compensen el desbalance de clases. (ii) \emph{Aprendizaje auto-supervisado}: preentrenar los modelos sobre radiografías sin etiquetar (por ejemplo, con aprendizaje contrastivo o autoencoders enmascarados), lo que reduciría la dependencia de etiquetas ruidosas y podría favorecer especialmente a los Transformers, que son los que más dependen de la cantidad de datos. (iii) \emph{Multimodalidad}: combinar la imagen con información clínica disponible en el propio conjunto ---edad, sexo y tipo de proyección (PA/AP)--- o con el texto de los reportes radiológicos. Además, se propone evaluar cuantitativamente la localización de los mapas de interpretabilidad con las cajas delimitadoras que ChestX-ray14 incluye para un subconjunto de imágenes.
 
 % =====================================================================
 \begin{thebibliography}{99}
@@ -321,6 +346,9 @@ Z.~R.~Murphy, K.~Venkatesh, J.~Sulam, and P.~H.~Yi, ``Visual transformers and co
 
 \bibitem{yanar2025mamba}
 E.~Yanar, F.~Kutan, K.~Ayturan, U.~Kutbay, O.~Algın, F.~Hardalaç, and A.~M.~Ağıldere, ``A comparative analysis of the Mamba, Transformer, and CNN architectures for multi-label chest X-ray anomaly detection in the NIH ChestX-ray14 dataset,'' \emph{Diagnostics}, vol.~15, no.~17, 2215, 2025.
+
+\bibitem{tu2022maxvit}
+Z.~Tu, H.~Talebi, H.~Zhang, F.~Yang, P.~Milanfar, A.~Bovik, and Y.~Li, ``MaxViT: Multi-axis vision transformer,'' in \emph{Proc. European Conf. Computer Vision (ECCV)}, 2022.
 
 \bibitem{selvaraju2017gradcam}
 R.~R.~Selvaraju, M.~Cogswell, A.~Das, R.~Vedantam, D.~Parikh, and D.~Batra, ``Grad-CAM: Visual explanations from deep networks via gradient-based localization,'' in \emph{Proc. IEEE Int. Conf. Computer Vision (ICCV)}, 2017, pp.~618--626.
