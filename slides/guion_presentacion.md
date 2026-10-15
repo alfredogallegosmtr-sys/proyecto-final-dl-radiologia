@@ -14,10 +14,7 @@
 - Está escrito para decirse en voz alta: frases cortas, cifras redondeadas y comparaciones fáciles de recordar. Las cifras exactas están en la Parte 2.
 - Lo que va entre **[corchetes]** es una acción, no se lee: señalar, hacer una pausa.
 - No hace falta memorizarlo palabra por palabra. Basta con recordar la **idea clave** de cada diapositiva (en negritas al inicio) y contarla con tus palabras.
-- **Duración:** ~885 palabras ≈ 5.7 min a ritmo normal. Si al ensayar te pasas de 6 minutos, recorta en este orden:
-  1. la frase del tiempo de entrenamiento (diapositiva 8);
-  2. la explicación de por qué el F1 sale casi en cero (diapositiva 4); deja solo "con el umbral ajustado sube a cerca de 0.2";
-  3. la diapositiva 7, en una sola frase: "la dificultad depende más de la enfermedad que del modelo".
+- **Duración: ~7 minutos** a ritmo normal (1042 palabras, contando unos segundos para señalar y pausar). La convocatoria recomienda 5–6 minutos de exposición y 3–4 de preguntas dentro de los 10 minutos exactos, así que con 7 quedan unos 3 para preguntas. Los párrafos marcados **(opcional)** se pueden saltar en el momento sin que se pierda el hilo. Saltándolos todos (920 palabras), el speech baja a unos 6 minutos.
 - **Diapositiva 9:** a la izquierda tiene etiquetas en español por fila (Infiltración, Derrame pleural, Atelectasia). Úsalas para señalar.
 
 **Pronunciación de los nombres**
@@ -42,8 +39,10 @@ Buenas tardes, soy Alfredo Gallegos López.
 
 Hoy quiero responder una pregunta sencilla: si queremos que una computadora lea radiografías de tórax, ¿qué conviene más? ¿Una red convolucional, un Transformer, o una mezcla de los dos?
 
-### 2. El problema (0:20–0:55)
-**Idea clave: es un problema difícil, y por eso uso AUROC.**
+### 2. El problema (0:20–1:10)
+**Idea clave: es un problema importante y difícil, y por eso uso AUROC.**
+
+¿Por qué importa? Hay muchas más radiografías que radiólogos para leerlas, y un modelo así podría ayudar a atender primero los casos urgentes.
 
 Trabajé con ChestX-ray14: ciento doce mil radiografías de unos treinta mil pacientes, con catorce posibles hallazgos.
 
@@ -54,7 +53,7 @@ Y es difícil por tres razones:
 
 Por eso no comparo con el porcentaje de aciertos, sino con el **AUROC**. La idea es simple: si le doy al modelo una radiografía enferma y una sana, ¿qué tan seguido le da más puntaje a la enferma? Medio punto es adivinar al azar; uno es perfecto.
 
-### 3. Metodología (0:55–1:50)
+### 3. Metodología (1:10–2:15)
 **Idea clave: mismas reglas para todos, y modelos que no empiezan de cero.**
 
 Para que sea justo, los cuatro modelos siguen las mismas reglas.
@@ -70,7 +69,9 @@ Ninguno empieza de cero. Todos vienen entrenados con millones de fotos normales,
 
 Y además pruebo un **ensemble**: juntar a los cuatro modelos y promediar su opinión.
 
-### 4. Resultados (1:50–2:40)
+**(Opcional)** Y para saber si una diferencia es real o es suerte, uso **intervalos de confianza**: repito la evaluación mil veces con muestras distintas y veo cuánto se mueve el resultado.
+
+### 4. Resultados (2:15–3:10)
 **Idea clave: los cuatro empatan; el ensemble gana.**
 
 **[Señala la tabla completa; las cuatro primeras filas son los modelos y la última, sombreada, el ensemble]** Este es el resultado principal.
@@ -81,9 +82,9 @@ En cambio, el **ensemble** **[señala la última fila]** sí destaca: llega a 0.
 
 También reporto el **F1**, que mide si el modelo encuentra los casos sin dar falsas alarmas. Con el umbral típico de 0.5 sale casi en cero, porque el modelo casi nunca se anima a decir "sí"; al ajustar el umbral de cada enfermedad con validación, sube a cerca de 0.2.
 
-Y un detalle curioso. **[Señala la columna "Exactitud", la penúltima: todos los valores son 0.950]** La exactitud es de 95% para todos. Pero un modelo que siempre dice "está sano" también saca 95%, así que aquí no sirve para comparar.
+Y un detalle curioso. **[Señala la columna "Exactitud", la penúltima: todos los valores son 0.950]** La exactitud es de 95% para todos. Suena muy bien, ¿verdad? Pero un modelo que siempre dice "está sano" también saca 95%. Así que aquí no sirve para comparar.
 
-### 5. Ensemble e híbrido (2:40–3:20)
+### 5. Ensemble e híbrido (3:10–3:55)
 **Idea clave: por qué gana el ensemble y por qué el híbrido quedó atrás.**
 
 ¿Por qué funciona el ensemble? Por lo mismo que una **segunda opinión médica**: cada modelo se equivoca en cosas distintas, y al juntarlos, los errores se compensan.
@@ -92,32 +93,34 @@ Y un detalle curioso. **[Señala la columna "Exactitud", la penúltima: todos lo
 
 ResNet, en cambio, **[señala la línea naranja, "resnet18", que se dispara hacia arriba al final]** aprende tan rápido que pronto empieza a memorizar. Por eso siempre uso su mejor momento, no el último.
 
-### 6. Con todos los datos: 112 mil imágenes (3:20–3:55)
+### 6. Con todos los datos: 112 mil imágenes (3:55–4:40)
 **Idea clave: con todos los datos, todos mejoran y las conclusiones se mantienen.**
 
 Después repetí todo con las ciento doce mil imágenes y las mismas reglas: solo cambia la cantidad de datos.
 
 Mi computadora se apagaba con tanta carga, así que puse la tarjeta gráfica a medio ritmo. Tardó casi cuatro horas, pero sin un solo apagado.
 
-¿El resultado? **[Señala la columna "Cambio": todos alrededor de +0.05]** **Todos mejoran unos cinco puntos.** El híbrido es el que más gana, y ahora sí termina de aprender. El ensemble sube a 0.81, muy cerca de los mejores trabajos publicados. Y ResNet ya se separa como el mejor individual, aunque por muy poquito.
+¿El resultado? **[Señala la columna "Cambio": todos alrededor de +0.05]** **Todos mejoran unos cinco puntos.** El híbrido es el que más gana, y ahora sí termina de aprender: confirma que le faltaban datos. El ensemble sube a 0.81, muy cerca de los mejores trabajos publicados. Y ResNet ya se separa como el mejor individual, aunque por muy poquito.
 
-### 7. Dificultad por hallazgo (3:55–4:10)
+### 7. Dificultad por hallazgo (4:40–5:05)
 **Idea clave: importa más la enfermedad que el modelo.**
 
 Además, la dificultad depende más de la enfermedad que del modelo. Las que son grandes y evidentes, como el edema o el derrame **[señala las filas de arriba de la gráfica, "Edema" y "Effusion", con puntos a la derecha]**, se detectan bien. Las pequeñas, como los nódulos **[señala las filas de abajo, "Nodule" e "Infiltration", con puntos más a la izquierda]**, les cuestan a todos.
 
-### 8. Costo computacional (4:10–4:40)
+**(Opcional)** Y la neumonía también cuesta, porque en la radiografía se parece mucho a la infiltración, y hasta las etiquetas las confunden.
+
+### 8. Costo computacional (5:05–5:40)
 **Idea clave: donde sí hay diferencias grandes es en el costo.**
 
 Y donde sí hay diferencias grandes es en el costo.
 
-El ViT tiene doce veces más parámetros que DenseNet. **[Señala la gráfica de la derecha, "Inferencia": la barra naranja de ResNet es la más alta]** Y el ViT y el híbrido son unas trece veces más lentos que ResNet para clasificar, sin dar mejores resultados.
+El ViT tiene doce veces más parámetros que DenseNet. **[Señala la gráfica de la derecha, "Inferencia": la barra naranja de ResNet es la más alta]** Y el ViT y el híbrido son unas trece veces más lentos que ResNet para clasificar, sin dar mejores resultados. En memoria pasa lo mismo: usan entre dos y tres veces más.
 
-Entrenar cada modelo tomó de tres a cinco minutos con 12 mil imágenes, y de ocho a cuarenta con las 112 mil.
+**(Opcional)** Entrenar cada modelo tomó de tres a cinco minutos con 12 mil imágenes, y de ocho a cuarenta con las 112 mil.
 
 Si tuviera que elegir uno para la práctica, sería **ResNet**: rinde igual o mejor, y es el más rápido y ligero.
 
-### 9. ¿Dónde miran los modelos? (4:40–5:15)
+### 9. ¿Dónde miran los modelos? (5:40–6:25)
 **Idea clave: acertar no siempre significa ver lo correcto.**
 
 Por último, quise ver dónde miran los modelos. Para eso usé **Grad-CAM**, que pinta de rojo las zonas que más influyeron en la decisión.
@@ -126,11 +129,13 @@ Cada fila es un paciente: **[recorre con el dedo la primera fila de izquierda a 
 
 **[Señala la fila de en medio, la marcada "Derrame pleural" a la izquierda, y en ella las columnas 2 y 3 (DenseNet y ResNet): la mancha roja grande en el centro del tórax]** Cuando hay derrame, las redes convolucionales ponen la mancha roja justo donde está el problema.
 
-**[Señala la fila de arriba, "Infiltración": las manchas rojas quedan en los bordes, fuera de los pulmones]** Pero aquí miran las orillas de la imagen o la etiqueta de texto "PORTABLE".
+**[Señala la fila de arriba, "Infiltración": las manchas rojas quedan en los bordes, fuera de los pulmones]** Pero aquí miran las orillas de la imagen, o la etiqueta de texto que dice "PORTABLE".
+
+**(Opcional)** **[Señala la figura de la derecha, la del ViT, columna del medio]** En el Transformer, el mapa que combina todas sus capas se va a las esquinas de la imagen: estos mapas hay que leerlos con cuidado.
 
 Eso es una alerta: un modelo puede acertar por las razones equivocadas, y un buen puntaje no garantiza que vea lo que vería un médico.
 
-### 10. Conclusiones (5:15–5:50)
+### 10. Conclusiones (6:25–7:00)
 **Idea clave: tres mensajes para llevarse.**
 
 Para cerrar, me quedo con tres ideas:
@@ -141,7 +146,9 @@ Para cerrar, me quedo con tres ideas:
 
 **Y tres.** **Medir bien importa tanto como el modelo.** Separar por paciente, usar intervalos de confianza y repetir el experimento evitó conclusiones equivocadas.
 
-Como siguientes pasos: reentrenar la red completa, aprovechar radiografías sin etiquetas y sumar datos clínicos del paciente.
+**(Opcional)** Claro, el trabajo tiene limitaciones: las etiquetas tienen ruido, usé una sola semilla por corrida y reentrené solo la última parte de cada red.
+
+Como siguientes pasos: reentrenar la red completa, aprovechar radiografías sin etiquetas y sumar datos clínicos del paciente, como su edad o el texto del reporte.
 
 **[Pausa]** Muchas gracias. Quedo atento a sus preguntas.
 
