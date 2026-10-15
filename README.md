@@ -8,7 +8,8 @@ Comparación de 3 modelos de deep learning (DenseNet121, ResNet, ViT-B/16) para 
 
 ```
 ChestXray14_Model_Comparison.ipynb   # notebook principal: datos, 3 modelos, entrenamiento, evaluación, interpretabilidad
-results/                             # metrics.json + figuras (Grad-CAM, atención) generadas por el notebook
+chestxray_data.py                    # clase Dataset (importada por el notebook)
+results/                             # metrics.json + figuras generadas por el notebook
 paper/                               # artículo IEEE Conference (PDF)
 slides/                              # presentación final
 ```
@@ -20,8 +21,10 @@ Este repositorio **no incluye el dataset** (NIH ChestX-ray14 completo, ~42GB —
 1. Clona este repo: `git clone <url-del-repo>`
 2. Coloca `archive.zip` (descargado de [Kaggle — nih-chest-xrays/data](https://www.kaggle.com/datasets/nih-chest-xrays/data)) en la raíz de este proyecto.
 3. Instala dependencias: `pip install torch torchvision scikit-learn pandas matplotlib seaborn grad-cam`
-4. Abre `ChestXray14_Model_Comparison.ipynb` y corre todas las celdas en orden. La primera vez, el notebook corre una prueba piloto con pocas imágenes antes de comprometerse al subconjunto completo de entrenamiento — revisa que esa celda termine sin errores antes de dejar correr el resto.
-5. Al terminar, `results/metrics.json` y las figuras de interpretabilidad quedan guardadas automáticamente — son la fuente de verdad para el paper y las slides.
+4. Abre `ChestXray14_Model_Comparison.ipynb` y corre todas las celdas en orden (~20 min en una GPU de gama media). Para una prueba piloto rápida, baja antes `N_SAMPLES` (p. ej. 300) y `EPOCHS` (1) en la celda de Setup.
+5. Al terminar, `results/` queda con la fuente de verdad para el paper y las slides:
+   - `metrics.json`: configuración, tamaños del split (por paciente), positivos por clase, y por modelo: AUROC (macro y por clase), F1 macro/micro con umbral por clase (elegido en validación) y @0.5, accuracy, intervalos de confianza al 95% por bootstrap, mejor época, costo (parámetros, tiempo/época, memoria pico, inferencia img/s) y curvas de pérdida; además, comparaciones pareadas entre modelos.
+   - Figuras: `sample_batch.png`, `val_loss_curves.png`, `auroc_per_class.png`, `cost_comparison.png`, `gradcam_examples.png`, `attention_example.png` (atención del último bloque + attention rollout del ViT).
 
 ### GPU AMD (como en la corrida reportada en `results/`)
 
