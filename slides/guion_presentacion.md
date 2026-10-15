@@ -97,13 +97,13 @@ Evidencia:
   - línea 31: `model.encoder.layers[-1]` (ViT);
   - línea 40: `model.blocks[-1].layers[-1]` (MaxViT).
 - **In [8], líneas 51–54**: `count_trainable_params`, de donde salen los porcentajes.
-- **In [9], línea 46**: `torch.optim.Adam(filter(lambda p: p.requires_grad, ...))`, que optimiza solo los parámetros descongelados.
+- **In [9], línea 48**: `torch.optim.Adam(filter(lambda p: p.requires_grad, ...))`, que optimiza solo los parámetros descongelados.
 - `paper/paper.tex`, línea 113 (Estrategia de fine-tuning) y línea 125 (Tabla II con el % ajustado).
 
 **4. ¿Por qué no balancearon la pérdida?**
 Porque es multi-etiqueta: una imagen puede tener a la vez un hallazgo frecuente y uno raro, así que el sobremuestreo por clase no está bien definido. Además, quise la misma pérdida para todos los modelos. El desbalance lo traté en la evaluación: con AUROC, que no depende de la prevalencia, y con un umbral por clase elegido en validación.
-- **In [9], línea 45**: `criterion = nn.BCEWithLogitsLoss()`, sin pesos por clase.
-- **In [12], líneas 21–29**: `tune_thresholds`, el umbral por clase.
+- **In [9], línea 47**: `criterion = nn.BCEWithLogitsLoss()`, sin pesos por clase.
+- **In [12], líneas 22–30**: `tune_thresholds`, el umbral por clase.
 - **In [6], líneas 38–42**: `prevalence_df`, los positivos por clase y split.
 - `paper/paper.tex`, línea 108: Balanceo de clases.
 
@@ -122,25 +122,25 @@ Es una limitación que reconozco. Invierte la lateralidad anatómica (por ejempl
 
 **7. ¿Por qué la exactitud es igual para todos?**
 Porque cada hallazgo aparece en ~5% de las imágenes en promedio. Un modelo que siempre dice "sano" ya acierta el 95% de las etiquetas, y los cuatro modelos dan 0.950. Por eso la reporto, como pide el proyecto, pero comparo con AUROC y F1.
-- **In [12], línea 41**: `"accuracy_at_0.5": float((y_pred_05 == y_true).mean())`
-- **In [12], línea 85**: `trivial_accuracy = float((y_test == 0).mean())`, la exactitud del modelo que siempre dice "sano".
+- **In [12], línea 43**: `"accuracy_at_0.5": float((y_pred_05 == y_true).mean())`
+- **In [12], línea 87**: `trivial_accuracy = float((y_test == 0).mean())`, la exactitud del modelo que siempre dice "sano".
 - `results/metrics.json`, línea 81: `"trivial_accuracy_all_negative": 0.9504...`; líneas 89, 170, 251 y 333: la exactitud de cada modelo (≈0.950).
 
 **8. ¿Por qué AUROC como métrica principal?**
 No depende del umbral ni de la prevalencia, y es la métrica estándar en ChestX-ray14 y CheXNet, lo que permite comparar con la literatura.
-- **In [12], líneas 12–18**: `auroc_per_class`, con `roc_auc_score` por clase.
-- **In [12], línea 36**: `"auroc_macro": float(np.nanmean(...))`, el promedio de las 14 clases.
+- **In [12], líneas 13–19**: `auroc_per_class`, con `roc_auc_score` por clase.
+- **In [12], línea 38**: `"auroc_macro": float(np.nanmean(...))`, el promedio de las 14 clases.
 
 **9. ¿Cómo eligieron el umbral? ¿No es fuga de datos?**
 Lo elegí maximizando el F1 de cada clase en **validación**, y lo apliqué sin cambios a prueba. Prueba nunca se usó para decidir nada. Con umbral 0.5, el F1 macro es casi nulo (~0.02–0.04); con el umbral ajustado sube a ~0.19.
-- **In [12], línea 68**: `thresholds[name] = tune_thresholds(y_val, val_probs[name])`, calculado con **y_val**.
-- **In [12], línea 81**: `summary_metrics(y_test, test_probs[name], thresholds[name])`, donde prueba solo recibe el umbral ya fijado.
+- **In [12], línea 70**: `thresholds[name] = tune_thresholds(y_val, val_probs[name])`, calculado con **y_val**.
+- **In [12], línea 83**: `summary_metrics(y_test, test_probs[name], thresholds[name])`, donde prueba solo recibe el umbral ya fijado.
 - `results/metrics.json`, línea 85 (`"f1_macro_tuned": 0.187`) contra línea 87 (`"f1_macro_at_0.5": 0.021`) para DenseNet.
 
 **10. ¿Qué significa que una diferencia sea "significativa"?**
 Remuestreé el conjunto de prueba 1000 veces (bootstrap) con los mismos índices para todos los modelos y calculé el intervalo de confianza al 95% de cada diferencia. Si ese intervalo no incluye el cero, la diferencia es significativa.
-- **In [12], líneas 47–57**: `bootstrap`, con los mismos índices `idx` para todos los modelos (línea 52).
-- **In [12], líneas 94–102**: comparación pareada, con `"significativa": bool(lo > 0 or hi < 0)` en la línea 101.
+- **In [12], líneas 49–59**: `bootstrap`, con los mismos índices `idx` para todos los modelos (línea 54).
+- **In [12], líneas 96–104**: comparación pareada, con `"significativa": bool(lo > 0 or hi < 0)` en la línea 103.
 - **In [1], línea 51**: `N_BOOTSTRAP = 1000`
 - `results/metrics.json`, línea 409: `"pairwise_bootstrap"`, con todas las comparaciones.
 
@@ -154,12 +154,12 @@ CheXNet usó las 112k imágenes, fine-tuning de toda la red y más épocas. Mi o
 No convergió. Es el único modelo cuya pérdida de validación seguía bajando en la época 5, y tiene la pérdida de entrenamiento más alta. Con solo su última capa entrenable y 5 épocas no alcanzó a adaptarse. Yanar et al. (2025) muestran que los híbridos son los mejores en ChestX-ray14, pero con entrenamiento completo.
 - `results/metrics.json`, línea 382: `"best_epoch": 5`, la última época.
 - `results/metrics.json`, línea 400: `"val_loss_history"` de MaxViT (0.1845 → 0.1748, siempre bajando).
-- **In [9], líneas 75–77**: cómo se elige la mejor época (`if val_loss < best_val_loss`).
+- **In [9], líneas 77–79**: cómo se elige la mejor época (`if val_loss < best_val_loss`).
 - `results/val_loss_curves.png` (curva amarilla) y `paper/paper.tex`, línea 290.
 
 **13. ¿Por qué funciona el ensemble?**
 Porque los modelos cometen errores distintos: CNN, Transformer e híbrido aprenden representaciones diferentes. Al promediar sus probabilidades, los errores se compensan. Mejora el AUROC entre +0.018 y +0.034 respecto a cada modelo, con significancia. El costo es correr los cuatro, unas 30 veces más lento que ResNet18 solo.
-- **In [12], líneas 71–73**: `test_probs["ensemble"] = np.mean([test_probs[n] for n in MODEL_NAMES], axis=0)`, con su propio umbral.
+- **In [12], líneas 73–75**: `test_probs["ensemble"] = np.mean([test_probs[n] for n in MODEL_NAMES], axis=0)`, con su propio umbral.
 - `results/metrics.json`, línea 652: `"auroc_macro": 0.7672` del ensemble.
 - `results/metrics.json`, línea 482: `"densenet121 - ensemble | auroc_macro"`, un ejemplo de comparación significativa.
 - `paper/paper.tex`, línea 292.
@@ -167,7 +167,7 @@ Porque los modelos cometen errores distintos: CNN, Transformer e híbrido aprend
 **14. ¿Por qué ResNet18 se sobreajusta?**
 Porque el fine-tuning le ajusta el 75% de la red: aprende rápido y memoriza. Su pérdida de validación sube desde la época 3. Por eso evalúo con los pesos de la mejor época, elegida en validación.
 - `results/metrics.json`, línea 237: `"val_loss_history"` de ResNet18 (0.174 → 0.196), y línea 230: `"train_loss_history"` (sigue bajando hasta 0.088).
-- **In [9], línea 90**: `model.load_state_dict(best_state)`, que restaura la mejor época.
+- **In [9], línea 92**: `model.load_state_dict(best_state)`, que restaura la mejor época.
 
 **15. Entonces, ¿cuál modelo recomiendas?**
 Para uso práctico, ResNet18: mismo desempeño y el menor costo. Si se busca el máximo desempeño y el costo no importa, el ensemble.
@@ -204,14 +204,14 @@ Es un artefacto conocido de los mapas de atención: algunos tokens de fondo acum
 **20. ¿Qué hardware usaron? ¿Afectó los resultados?**
 Una GPU AMD Radeon RX 6800 XT con PyTorch y ROCm. La PC se apagó sola varias veces bajo carga, así que agregué checkpoints por época para poder reanudar. Esto no afecta los resultados: la corrida terminó completa, y la única medición afectada (la memoria del ViT al reanudar) está corregida y documentada.
 - `results/metrics.json`, línea 14: `"device_name": "AMD Radeon RX 6800 XT"`.
-- **In [9], líneas 37–41**: `save_checkpoint`, con escritura atómica.
-- **In [9], líneas 51–59**: la reanudación desde el checkpoint.
-- **In [9], líneas 82–87**: el guardado al final de cada época.
+- **In [9], líneas 38–42**: `save_checkpoint`, con escritura atómica.
+- **In [9], líneas 53–61**: la reanudación desde el checkpoint.
+- **In [9], líneas 84–89**: el guardado al final de cada época.
 - `HISTORIAL.md`, línea 193.
 
 **21. ¿Por qué hay una nota sobre la memoria del ViT?**
 Al reanudar el ViT tras un apagado, el código cargó en la GPU una copia extra de los pesos e infló la memoria medida (1,635 MB). Lo corregí y reporto la medición limpia, 980 MB, idéntica en dos corridas independientes.
-- **In [9], líneas 52–54**: la corrección, `torch.load(checkpoint_path, map_location="cpu", ...)`.
+- **In [9], líneas 54–56**: la corrección, `torch.load(checkpoint_path, map_location="cpu", ...)`.
 - `results/metrics.json`, línea 309: `"peak_memory_mb": 980.21`; línea 325: `"peak_memory_note"` con la explicación.
 - Notebook: la celda markdown **después de In [14]** ("Nota sobre la memoria pico del ViT-B/16").
 
@@ -220,7 +220,7 @@ Clonas el repo, pones `archive.zip` en la raíz, instalas dependencias y corres 
 - `README.md`, sección "Cómo correr el notebook".
 - **In [1], líneas 20–25**: `SEED = 42` y las semillas de random, numpy y torch.
 - **In [17], líneas 57–58**: el guardado de `metrics.json`.
-- **In [12], líneas 76–77**: el guardado de `predictions.npz`.
+- **In [12], líneas 78–79**: el guardado de `predictions.npz`.
 
 **23. ¿Se puede correr como .py?**
 El experimento está en el notebook. Se ejecuta en Jupyter o desde la terminal con `run_notebook.py`, que corre el notebook completo sin abrir Jupyter. `chestxray_data.py` es un módulo de apoyo. Con `jupyter nbconvert --to script` se puede exportar a `.py`.
