@@ -14,7 +14,7 @@ Bitácora de lo que se ha hecho, por qué, qué se corrigió y qué falta. Compl
 | Resultados principales | ✅ `results/` (corrida 4) |
 | Repetición previa (3 modelos) | ✅ `results/subset_12k/` (corrida 2), usada para medir variabilidad entre corridas |
 | Resultados con dataset completo (112k) | ⏸️ **Pospuesto** (P3): la PC se apaga sola bajo carga sostenida de la GPU. Código listo en `ChestXray14_Model_Comparison_112k.ipynb` (reanudable) |
-| Paper IEEE | ✅ `paper/paper.tex` → `paper/paper_IEEE.pdf` (8 páginas, 21 referencias, sin pendientes). Paquete para Overleaf: `paper/overleaf_upload.zip` |
+| Paper IEEE | ✅ `paper/paper.tex` → `paper/paper_IEEE.pdf` (8 páginas, 22 referencias, sin pendientes). Paquete para Overleaf: `paper/overleaf_upload.zip` |
 | Slides | ✅ `slides/presentacion_final.pptx` (9 diapositivas, con notas del orador) y `slides/presentacion_final.pdf` |
 | Lineamientos del curso | ✅ Revisados uno por uno (§10) |
 | Revisión final y ensayo | ⬜ Pendiente (ver §8) |
