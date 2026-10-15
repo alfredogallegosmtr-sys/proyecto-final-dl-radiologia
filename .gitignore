@@ -10,6 +10,8 @@ images_*/
 *.jpeg
 !results/*.png
 !results/*.jpg
+!results/*/*.png
+!results/*/*.jpg
 
 # Model checkpoints / weights — can be large, not needed in git history
 *.pt
