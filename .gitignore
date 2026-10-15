@@ -1,0 +1,28 @@
+# Dataset (NIH ChestX-ray14) and anything derived from it — never commit, lives only on the training machine
+archive.zip
+*.zip
+data/
+images/
+images_*/
+*.dcm
+*.png
+*.jpg
+*.jpeg
+!results/*.png
+!results/*.jpg
+
+# Model checkpoints / weights — can be large, not needed in git history
+*.pt
+*.pth
+*.ckpt
+checkpoints/
+saved_models/
+
+# Python / Jupyter
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db
