@@ -2,7 +2,7 @@
 
 Bitácora de lo que se ha hecho, por qué, qué se corrigió y qué falta. Complementa a [`PLAN.md`](PLAN.md) (las decisiones originales y su justificación) y al [`README.md`](README.md) (cómo correr todo). Si algo de aquí contradice a `PLAN.md`, **este archivo es lo más reciente**.
 
-Última actualización: jueves 15 de octubre de 2026, ~2:00am (CDMX). Entrega: **hoy, 4–9pm**.
+Última actualización: jueves 15 de octubre de 2026, ~2:45am (CDMX). Entrega: **hoy, 4–9pm**.
 
 ---
 
@@ -10,11 +10,12 @@ Bitácora de lo que se ha hecho, por qué, qué se corrigió y qué falta. Compl
 
 | Pieza | Estado |
 |---|---|
-| Notebook (`ChestXray14_Model_Comparison.ipynb`) | ✅ Funciona de principio a fin en la PC con GPU |
-| Resultados con subconjunto de 12k imágenes | ✅ Conservados en `results/subset_12k/` (corrida complementaria; commit original `211436c`) |
-| Resultados con dataset completo (112k) | ❌ La corrida 3 se perdió: **la PC se apagó sola** a mitad del entrenamiento (ver §2 y §9). Pendiente decidir si se reintenta |
-| Paper IEEE | 🟡 Borrador en `paper/paper.tex`: Introducción, Estado del arte y Metodología escritos; Resultados y Discusión con estructura y `[PENDIENTE]` |
-| Slides | ⬜ No iniciadas |
+| Notebook principal (`ChestXray14_Model_Comparison.ipynb`) | ✅ Ejecutado de principio a fin con 12k imágenes (corrida 2) |
+| Resultados principales (12k imágenes) | ✅ `results/` (y copia idéntica en `results/subset_12k/`) |
+| Resultados con dataset completo (112k) | ⏸️ **Pospuesto** (P3): la PC se apagó sola 3 veces entrenando en la GPU. El código está listo en `ChestXray14_Model_Comparison_112k.ipynb` (reanudable) |
+| Paper IEEE | ✅ Completo: `paper/paper.tex` → `paper/paper_IEEE.pdf` (6 páginas, 20 referencias, sin pendientes). Paquete para Overleaf: `paper/overleaf_upload.zip` |
+| Slides | ✅ `slides/presentacion_final.pptx` (8 diapositivas, con notas del orador) y `slides/presentacion_final.pdf` |
+| Revisión final y ensayo | ⬜ Pendiente (ver §8) |
 
 ---
 
@@ -36,12 +37,14 @@ Bitácora de lo que se ha hecho, por qué, qué se corrigió y qué falta. Compl
 | 00:00 | Extracción completa terminó (112,128 archivos). **`archive.zip` movido** (no copiado) a la raíz del repo. |
 | 00:01–00:16 | **Corrida 1** (12k imágenes, split por imagen). Commit `0b286b6`. |
 | 00:30 | Revisión crítica de la corrida 1 → se identificaron 12 puntos débiles (ver §5). El usuario aprobó todas las mejoras. |
-| 00:45 | Se aplicaron las mejoras al notebook y se validaron con piloto. La primera ejecución real se interrumpió — después se confirmó que fue un **apagado inesperado de la PC** a las 00:53 (reinicio 01:01) — y se relanzó como **proceso independiente de Windows** para que sobreviva a cortes. |
-| 01:08–01:25 | **Corrida 2** (12k imágenes, split por paciente, AUROC, IC, etc.). Commit `211436c`. |
-| 01:35 | Decisión (del usuario): correr con el **dataset completo**, con caché de imágenes a 256px. |
-| 01:44 | **Corrida 3** lanzada (112,120 imágenes). Caché de 256px generada en ~6 min. |
-| ~01:50–02:00 | **Apagado inesperado de la PC** durante el entrenamiento de la corrida 3 (Windows: evento 6008, reinicio a las 2:00:40; sin pantalla azul ni minidump). La corrida 3 se perdió. |
-| 01:56 | Decisión (del usuario): **conservar también la corrida de 12k**. Restaurada desde git a `results/subset_12k/` (métricas, figuras y notebook ejecutado). |
+| 00:45 | Mejoras aplicadas y validadas con piloto. La primera ejecución real murió por un **apagado inesperado de la PC** (00:53, reinicio 01:01); se relanzó como proceso independiente de Windows. |
+| 01:08–01:25 | **Corrida 2** (12k imágenes, split por paciente, AUROC, IC, etc.) — terminó completa (`OK`). Commit `211436c`. **Son los resultados principales.** |
+| 01:35 | Decisión (del usuario): intentar el **dataset completo** con caché de imágenes a 256px (corrida 3). |
+| 01:44–~01:55 | Corrida 3: caché de 112,120 imágenes generada en ~6 min; **2º apagado inesperado** durante el entrenamiento (reinicio 2:00). |
+| 01:56 | Decisión (del usuario): **conservar la corrida de 12k** por separado → `results/subset_12k/`. Se escribieron `HISTORIAL.md` y el borrador del paper (commit `28e465f`). |
+| 02:14 | Corrida 3 relanzada con **checkpoints por época** (reanudable) y `run_notebook.py`. **3er apagado** a los ~7 min (reinicio 2:22). |
+| 02:25 | Decisión (del usuario): **usar 12k como resultados principales y terminar**; la corrida de 112k queda pendiente (P3, bajando la carga de la GPU). |
+| 02:25–02:45 | Instalado **MiKTeX** (LaTeX local); paper completado con los números de 12k y compilado; búsqueda y verificación de 2 estudios recientes (Murphy 2022, Yanar 2025); institución y fuente Kaggle agregadas. Presentación generada (pptxgenjs) y revisada visualmente con PowerPoint. |
 
 ---
 
@@ -49,7 +52,9 @@ Bitácora de lo que se ha hecho, por qué, qué se corrigió y qué falta. Compl
 
 - **Hardware:** AMD Radeon RX 6800 XT (16GB VRAM), AMD Ryzen 9 5900 (12 núcleos / 24 hilos), 32GB RAM, Windows 11.
 - **Software:** Python 3.14.3; `torch 2.13.0a0+rocm7.13.0a20260421`, `torchvision 0.27.0a0+rocm7.13.0a20260421` (wheels nightly de `https://rocm.nightlies.amd.com/v2-staging/gfx103X-dgpu/`, **sin soporte oficial** para la 6800 XT en Windows), `grad-cam 1.5.7`, `scikit-learn 1.9.1`, `pandas 3.0.6`.
-- **Venv:** `ProyectoFinal/.venv-rocm` (fuera del repo). Kernel de Jupyter: `Python (ROCm - ChestXray14)`.
+- **Venv:** `ProyectoFinal/.venv-rocm` (fuera del repo). Kernel de Jupyter: `Python (ROCm - ChestXray14)` (`chestxray-rocm`).
+- **LaTeX:** MiKTeX 25.12 (instalación de usuario, instala paquetes automáticamente). Compilar: `pdflatex paper.tex` dos veces dentro de `paper/`.
+- **Slides:** Node 22 + `pptxgenjs` (generador `slides/build_deck.js`); PowerPoint de Office para revisar/exportar a PDF.
 - Con ROCm, PyTorch expone la GPU vía la API `torch.cuda`, por eso el notebook imprime `Using device: cuda`.
 - Avisos esperados y no bloqueantes: `MIOpen ... CK grouped conv library not found for device gfx1030`, `xnack 'Off' was requested...`, `Torch was not compiled with memory efficient attention` (afecta al ViT: tiempo y memoria algo pesimistas vs. NVIDIA).
 
@@ -81,36 +86,37 @@ No se cambió el protocolo experimental de `PLAN.md` (modelos, LR, épocas, opti
 | Se evaluaba la última época aunque hubiera sobreajuste (ResNet18) | Se restauran los pesos de la **mejor época** (menor val loss) |
 | Accuracy ≈ igual para todos (dominada por negativos) | **AUROC** macro y por clase como métrica principal; accuracy trivial reportada como referencia |
 | Sin incertidumbre en las métricas | **IC 95% por bootstrap** (1000 remuestreos) + **comparación pareada** entre modelos |
-| Tiempo de la 1ª época inflado (arranque de kernels/workers); memoria pico incluía modelos previos | **Calentamiento** antes de medir; cada modelo se pasa a CPU al terminar; **throughput de inferencia** medido solo en GPU |
+| Tiempo de la 1ª época inflado; memoria pico incluía modelos previos | **Calentamiento** antes de medir; cada modelo se pasa a CPU al terminar; **throughput de inferencia** medido solo en GPU |
 | Faltaba gráfica de costo (pedida para slides) | `cost_comparison.png` |
 | Interpretabilidad: una sola imagen, clase predicha | 3 ejemplos con la **clase real**; ViT con atención del último bloque **y attention rollout** |
 | Limitaciones no documentadas | Sección 8 "Limitaciones" en el notebook |
-| Carga de PNGs de 1024px dominaba el tiempo por época | **Caché a 256px** (corrida 3) |
-| Solo 12k imágenes (~11%) | **Dataset completo** (corrida 3) |
+| Solo 12k imágenes (~11%); carga de PNGs de 1024px domina el tiempo por época | Preparado (no ejecutado): **dataset completo + caché a 256px + checkpoints** en `ChestXray14_Model_Comparison_112k.ipynb` |
 
 ---
 
-## 6. Resultados por corrida
+## 6. Resultados
 
-### Corrida 1 — 12k imágenes, split por imagen (obsoleta, solo referencia)
-Accuracy ≈ 0.945 para los 3; F1 macro@0.5: DenseNet 0.034, ResNet 0.083, ViT 0.072. Mostró los problemas de §5.
-
-### Corrida 2 — 12k imágenes, split por paciente (`results/subset_12k/`, commit original `211436c`)
-Test: 1,802 imágenes / 1,166 pacientes.
+### Resultados principales — corrida 2: 12k imágenes, split por paciente (`results/`)
+Test: 1,802 imágenes / 1,166 pacientes. Terminó completa y sin interrupciones (los apagados de la PC ocurrieron en otras corridas y no la afectan).
 
 | Modelo | AUROC macro [IC95] | F1 macro (umbral) | F1 micro (umbral) | Mejor época | s/época | Memoria pico | Inferencia |
 |---|---|---|---|---|---|---|---|
 | DenseNet121 | 0.742 [0.717, 0.767] | 0.185 | 0.248 | 2 | 41.3 | 442 MB | 1,145 img/s |
-| ResNet18 | **0.760** [0.736, 0.781] | 0.186 | **0.264** | 2 | 44.4 | 418 MB | **4,653 img/s** |
+| ResNet18 | **0.760** [0.736, 0.781] | 0.186 | **0.264** | 2 | 44.3 | 418 MB | **4,653 img/s** |
 | ViT-B/16 | 0.745 [0.718, 0.769] | 0.186 | 0.249 | 3 | 57.8 | 980 MB | 359 img/s |
 
 - Diferencias significativas (bootstrap pareado): solo ResNet18 > DenseNet121 en AUROC (+0.018) y F1 micro (+0.016). Lo demás: empate técnico.
-- Accuracy trivial (todo negativo): 0.9504 ≈ accuracy de los 3 modelos.
-- ResNet18 se sobreajusta desde la época 3 (val loss 0.173 → 0.203).
-- Grad-CAM: en Effusion las CNN miran la zona correcta; en Infiltration miran bordes/marcas de texto (posible *shortcut*); en Atelectasis (p≈0.04) ResNet da mapa vacío.
+- Accuracy trivial (todo negativo): 0.9504 ≈ accuracy de los 3 modelos. F1 macro con umbral 0.5: 0.012–0.037 → con umbral ajustado: 0.185–0.186.
+- AUROC por clase: más fáciles Emphysema/Edema/Effusion (>0.82); más difíciles Nodule/Infiltration/Pneumonia (<0.69). Mayor diferencia entre modelos: Cardiomegaly (DenseNet 0.663 vs ResNet 0.775).
+- ResNet18 (8.4M parámetros entrenables) se sobreajusta desde la época 3 (val loss 0.173 → 0.203).
+- Costo: ViT = 12.3× parámetros de DenseNet, 2.3× memoria de ResNet, 13× más lento en inferencia que ResNet.
+- Grad-CAM: en Effusion las CNN miran la región correcta; en Infiltration miran bordes/marca "PORTABLE" (posible *shortcut*); en Atelectasis (p≈0.04) ResNet da mapa vacío. ViT: el rollout se concentra en las esquinas de la imagen (artefacto conocido).
 
-### Corrida 3 — dataset completo, 112,120 imágenes (en curso)
-Resultados pendientes. Al terminar se actualiza esta sección, `results/` y el paper.
+### Corrida 1 — 12k imágenes, split por imagen (obsoleta, solo referencia)
+Accuracy ≈ 0.945 para los 3; F1 macro@0.5: DenseNet 0.034, ResNet 0.083, ViT 0.072. Mostró los problemas de §5.
+
+### Corrida 3 — dataset completo (no completada)
+3 intentos, los 3 terminaron en apagado de la PC. Pendiente P3.
 
 ---
 
@@ -118,44 +124,46 @@ Resultados pendientes. Al terminar se actualiza esta sección, `results/` y el p
 
 | Archivo | Qué es |
 |---|---|
-| `ChestXray14_Model_Comparison.ipynb` | Notebook principal (ejecutado, con outputs) |
+| `ChestXray14_Model_Comparison.ipynb` | Notebook principal (ejecutado, 12k imágenes) |
+| `ChestXray14_Model_Comparison_112k.ipynb` | Versión lista para el dataset completo (caché 256px, checkpoints, resultados en `results/full_112k/`); **sin ejecutar** |
 | `chestxray_data.py` | Clase Dataset + funciones de la caché (tienen que estar fuera del notebook por Windows) |
+| `run_notebook.py` | Ejecuta un notebook sin abrir Jupyter: `python run_notebook.py [notebook] [kernel]` |
 | `results/metrics.json` | **Fuente única de verdad** para paper y slides |
 | `results/*.png` | `sample_batch`, `val_loss_curves`, `auroc_per_class`, `cost_comparison`, `gradcam_examples`, `attention_example` |
-| `results/subset_12k/` | Corrida complementaria con 12k imágenes: `metrics.json`, las mismas figuras y el notebook ejecutado |
-| `paper/paper.tex` | Borrador del paper (IEEE Conference, español) |
+| `results/subset_12k/` | Copia de la corrida de 12k (métricas, figuras, notebook ejecutado) |
+| `paper/paper.tex` / `paper/paper_IEEE.pdf` | Paper (IEEE Conference, español) y su PDF compilado con MiKTeX |
+| `paper/overleaf_upload.zip` | `paper.tex` + figuras en `figures/`, listo para subir a Overleaf |
+| `slides/presentacion_final.pptx` / `.pdf` | Presentación (8 diapositivas, con notas del orador) |
+| `slides/build_deck.js` | Generador de la presentación desde `results/metrics.json` |
 | `PLAN.md` / `README.md` / `HISTORIAL.md` | Plan original / cómo correr / este historial |
 
-Fuera del repo (no se suben): `archive.zip` (42GB, en la raíz del repo pero ignorado por git), `images_256/` (caché), `images_subset/` (imágenes de la corrida de 12k, se puede borrar), `ProyectoFinal/archive/` (extracción completa duplicada de 42GB, se puede borrar), `ProyectoFinal/.venv-rocm/`.
+Fuera del repo (no se suben): `archive.zip` (42GB, en la raíz del repo pero ignorado por git), `images_256/` (caché de 112k a 256px), `images_subset/` (imágenes de la corrida de 12k), `checkpoints/` (DenseNet de la corrida 3 a medias), `ProyectoFinal/archive/` (extracción completa duplicada de 42GB), `ProyectoFinal/.venv-rocm/`.
 
 ---
 
 ## 8. Pendientes (por prioridad)
 
 ### 🔴 P1 — Obligatorio para la entrega
-1. **Terminar corrida 3** y subir resultados (commit + push). *Si falla:* usar la corrida 2 (`results/subset_12k/`) y cambiar "dataset completo" por "subconjunto de 12k imágenes" en la Metodología.
-2. **Paper — Resultados:** tablas de desempeño y costo desde `metrics.json`, figuras (`auroc_per_class`, `cost_comparison`, `val_loss_curves`, `gradcam_examples`, `attention_example`).
-3. **Paper — Discusión y Conclusiones** (usar §6 de este archivo y la sección 8 del notebook).
-4. **Slides** (5–6 min): problema → método → tabla de métricas → gráfica de costo → Grad-CAM/atención → conclusiones.
-5. **Revisión final:** compilar PDF, revisar formato IEEE, subir entregables.
+1. **Revisar el paper** (`paper/paper_IEEE.pdf`) completo y ajustar redacción a tu gusto.
+2. **Revisar la presentación** (`slides/presentacion_final.pptx`) en PowerPoint; leer las notas del orador.
+3. **Comparar Overleaf vs. LaTeX local**: subir `paper/overleaf_upload.zip` a Overleaf (New Project → Upload Project) y elegir con cuál quedarse.
+4. **Subir entregables** (paper PDF, slides, link al repo) donde los pida el curso.
 
 ### 🟡 P2 — Importante
-6. Ensayar la exposición (5–6 min, cronometrada).
-7. Revisar que todas las cifras del paper y las slides coincidan con `metrics.json`.
-8. Usar las dos corridas en la Discusión: **efecto del tamaño del dataset (12k vs. 112k)** por arquitectura (¿el ViT gana más con más datos?).
-9. Agregar 1–2 estudios recientes (2022–2024) que comparen CNN vs. Transformer en radiografías de tórax al Estado del arte — **verificar cada referencia** antes de citarla.
+5. **Ensayar la exposición** (5–6 min, cronometrada; ~40 s por diapositiva).
+6. Revisar que las cifras del paper y las slides coincidan con `results/metrics.json` (se generaron de ahí, pero conviene una lectura final).
 
-### 🟢 P3 — Opcional
-10. Borrar `ProyectoFinal/archive/` e `images_subset/` para liberar espacio (~46GB).
-11. Trabajo futuro (solo mencionarlo en el paper): fine-tuning completo, varias semillas, mayor resolución, evaluación cuantitativa de localización con `BBox_List_2017.csv`, pérdida ponderada por clase.
+### 🟢 P3 — Opcional (solo si sobra tiempo)
+7. **Reintentar la corrida de 112k bajando la carga de la GPU**: límite de potencia en AMD Adrenalin (-15% o más), y/o batch más chico con pausas entre lotes desde el código. Comando: `python run_notebook.py ChestXray14_Model_Comparison_112k.ipynb chestxray-rocm` (con el Python de `.venv-rocm`); es reanudable con `checkpoints/`. Si termina, se puede agregar al paper como experimento complementario (efecto del tamaño del dataset).
+8. Borrar `ProyectoFinal/archive/` e `images_subset/` para liberar espacio (~46GB).
 
 ---
 
 ## 9. Lecciones / notas para quien retome
 
-- **La PC se apaga sola bajo carga sostenida de GPU** (2 veces: 00:53 y ~01:55, ambas durante entrenamientos largos; sin pantalla azul). Sospechas: energía/temperatura o cuelgue del driver ROCm nightly (sin soporte oficial para la RX 6800 XT en Windows). Corridas cortas (pilotos, corrida de 12k de 17 min, limitada por la carga de datos) sí terminaron. Antes de otra corrida larga: revisar temperaturas/energía, o hacer el entrenamiento reanudable (checkpoints por época).
-
-- Correr ejecuciones largas como **proceso independiente** (`Start-Process`) y no ligado a la sesión: una sesión cerrada mató una corrida a medias.
-- Antes de una corrida larga, siempre **piloto** con `N_SAMPLES = 300`, `EPOCHS = 1` (≈2 min).
-- Los resultados del piloto **sobrescriben** `results/`: no hacer commit de `results/` hasta que termine la corrida real.
+- **La PC se apaga sola bajo carga sostenida de GPU** (3 veces: 00:53, ~01:55 y ~02:21; sin pantalla azul ni minidump, evento 6008). Sospechas: energía/temperatura o cuelgue del driver ROCm nightly (sin soporte oficial para la RX 6800 XT en Windows). Las corridas con menor carga (pilotos, corrida de 12k limitada por la lectura de imágenes) sí terminaron; con la caché de 256px la GPU trabaja al 100% sin pausas y se apaga antes. Revisar temperaturas/fuente de poder antes de otra corrida larga.
+- Correr ejecuciones largas como **proceso independiente** (`Start-Process`) y no ligado a la sesión.
+- Antes de una corrida larga, siempre **piloto** con `N_SAMPLES = 300`, `EPOCHS = 1` (≈2 min), con carpetas de resultados y checkpoints **separadas** de las reales.
+- Los resultados del piloto **sobrescriben** `results/`: no hacer commit de `results/` hasta que termine la corrida real (se puede restaurar con `git checkout -- results/`).
 - Las métricas se leen siempre de `results/metrics.json`, nunca transcritas a mano desde la pantalla.
+- En Git Bash, los scripts de Python escritos con heredoc pierden las barras invertidas (`\`): para LaTeX usar archivos `.py` o editar el `.tex` directamente.

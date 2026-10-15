@@ -28,3 +28,6 @@ __pycache__/
 # OS
 .DS_Store
 Thumbs.db
+
+# Paquete para subir a Overleaf (paper.tex + figuras) - si se versiona
+!paper/overleaf_upload.zip

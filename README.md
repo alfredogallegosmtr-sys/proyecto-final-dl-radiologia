@@ -9,8 +9,12 @@ Comparación de 3 modelos de deep learning (DenseNet121, ResNet, ViT-B/16) para 
 ```
 ChestXray14_Model_Comparison.ipynb   # notebook principal: datos, 3 modelos, entrenamiento, evaluación, interpretabilidad
 chestxray_data.py                    # clase Dataset (importada por el notebook)
-results/                             # metrics.json + figuras de la corrida principal (dataset completo)
-  subset_12k/                        # corrida complementaria con 12k imágenes (métricas, figuras, notebook ejecutado)
+ChestXray14_Model_Comparison_112k.ipynb  # versión para el dataset completo (caché 256px, checkpoints); sin ejecutar
+run_notebook.py                      # ejecuta un notebook sin abrir Jupyter (reanudable con checkpoints/)
+results/                             # metrics.json + figuras de la corrida principal (12k imágenes, split por paciente)
+  subset_12k/                        # copia de la corrida de 12k (métricas, figuras, notebook ejecutado)
+paper/paper.tex, paper_IEEE.pdf      # paper IEEE (LaTeX y PDF); overleaf_upload.zip para subirlo a Overleaf
+slides/presentacion_final.pptx/.pdf  # presentación (con notas del orador); build_deck.js la regenera desde metrics.json
 HISTORIAL.md                         # bitácora: qué se hizo, correcciones, resultados por corrida, pendientes
 paper/                               # artículo IEEE Conference (PDF)
 slides/                              # presentación final
