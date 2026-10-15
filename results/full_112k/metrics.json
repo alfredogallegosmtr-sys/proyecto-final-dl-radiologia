@@ -1,0 +1,717 @@
+{
+  "config": {
+    "n_samples": 112120,
+    "img_size": 224,
+    "batch_size": 32,
+    "epochs": 5,
+    "learning_rate": 0.0001,
+    "train_frac": 0.7,
+    "val_frac": 0.15,
+    "split": "por paciente (Patient ID)",
+    "seed": 42,
+    "n_bootstrap": 1000,
+    "device": "cuda",
+    "device_name": "AMD Radeon RX 6800 XT",
+    "torch_version": "2.13.0a0+rocm7.13.0a20260421",
+    "low_power": {
+      "gpu_duty_sleep": 1.0,
+      "cooldown_between_epochs_sec": 60,
+      "cooldown_between_models_sec": 180,
+      "num_workers": 2,
+      "nota": "epoch_times_sec excluye las pausas de bajo consumo"
+    }
+  },
+  "split_sizes": {
+    "train": {
+      "images": 78484,
+      "patients": 21578
+    },
+    "val": {
+      "images": 16814,
+      "patients": 4480
+    },
+    "test": {
+      "images": 16822,
+      "patients": 4747
+    }
+  },
+  "positives_per_class": {
+    "train": {
+      "Atelectasis": 7978,
+      "Cardiomegaly": 1903,
+      "Effusion": 9224,
+      "Infiltration": 13864,
+      "Mass": 3997,
+      "Nodule": 4437,
+      "Pneumonia": 1004,
+      "Pneumothorax": 3930,
+      "Consolidation": 3297,
+      "Edema": 1576,
+      "Emphysema": 1835,
+      "Fibrosis": 1204,
+      "Pleural_Thickening": 2414,
+      "Hernia": 168
+    },
+    "val": {
+      "Atelectasis": 1771,
+      "Cardiomegaly": 457,
+      "Effusion": 2016,
+      "Infiltration": 3034,
+      "Mass": 857,
+      "Nodule": 894,
+      "Pneumonia": 219,
+      "Pneumothorax": 666,
+      "Consolidation": 649,
+      "Edema": 353,
+      "Emphysema": 341,
+      "Fibrosis": 224,
+      "Pleural_Thickening": 481,
+      "Hernia": 25
+    },
+    "test": {
+      "Atelectasis": 1810,
+      "Cardiomegaly": 416,
+      "Effusion": 2077,
+      "Infiltration": 2996,
+      "Mass": 928,
+      "Nodule": 1000,
+      "Pneumonia": 208,
+      "Pneumothorax": 706,
+      "Consolidation": 721,
+      "Edema": 374,
+      "Emphysema": 340,
+      "Fibrosis": 258,
+      "Pleural_Thickening": 490,
+      "Hernia": 34
+    }
+  },
+  "trivial_accuracy_all_negative": 0.947526198685395,
+  "models": {
+    "densenet121": {
+      "auroc_macro": 0.791644313744136,
+      "f1_macro_tuned": 0.24378931950898283,
+      "f1_micro_tuned": 0.3234490608992601,
+      "f1_macro_at_0.5": 0.06244941815802861,
+      "f1_micro_at_0.5": 0.1083672283556072,
+      "accuracy_at_0.5": 0.9478743821865924,
+      "auroc_per_class": {
+        "Atelectasis": 0.7698757016486258,
+        "Cardiomegaly": 0.8244132950890388,
+        "Effusion": 0.855408727373535,
+        "Infiltration": 0.6899457606525659,
+        "Mass": 0.7555262395699093,
+        "Nodule": 0.6748167109088611,
+        "Pneumonia": 0.7380330015927253,
+        "Pneumothorax": 0.829689074324462,
+        "Consolidation": 0.794607436879249,
+        "Edema": 0.9095559949749266,
+        "Emphysema": 0.8542591918456498,
+        "Fibrosis": 0.766318896495435,
+        "Pleural_Thickening": 0.7667041541083736,
+        "Hernia": 0.8538662069545474
+      },
+      "thresholds": {
+        "Atelectasis": 0.13,
+        "Cardiomegaly": 0.09999999999999999,
+        "Effusion": 0.24000000000000002,
+        "Infiltration": 0.19,
+        "Mass": 0.14,
+        "Nodule": 0.13,
+        "Pneumonia": 0.04,
+        "Pneumothorax": 0.14,
+        "Consolidation": 0.09,
+        "Edema": 0.11,
+        "Emphysema": 0.15000000000000002,
+        "Fibrosis": 0.060000000000000005,
+        "Pleural_Thickening": 0.08,
+        "Hernia": 0.03
+      },
+      "ci95": {
+        "auroc_macro": [
+          0.7846653797216533,
+          0.7986596928623338
+        ],
+        "f1_macro_tuned": [
+          0.23390870673774675,
+          0.25422016693979055
+        ],
+        "f1_micro_tuned": [
+          0.31672650910376204,
+          0.3297515290336527
+        ]
+      },
+      "total_params": 6968206,
+      "trainable_params": 2174478,
+      "best_epoch": 2,
+      "avg_epoch_time_sec": 169.94470558166503,
+      "epoch_times_sec": [
+        161.40066051483154,
+        148.89255833625793,
+        173.45732522010803,
+        183.93550944328308,
+        182.0374743938446
+      ],
+      "peak_memory_mb": 441.787109375,
+      "inference_imgs_per_sec": 1157.6990880226747,
+      "train_loss_history": [
+        0.16940505964891167,
+        0.1537023140436576,
+        0.1473101223613854,
+        0.14083314323600316,
+        0.13346052059195754
+      ],
+      "val_loss_history": [
+        0.15658720646464325,
+        0.1547545638969416,
+        0.15540961232815406,
+        0.157725886742765,
+        0.16000026271823695
+      ]
+    },
+    "resnet18": {
+      "auroc_macro": 0.798895026029383,
+      "f1_macro_tuned": 0.2524826660071072,
+      "f1_micro_tuned": 0.32953895435304886,
+      "f1_macro_at_0.5": 0.0633864822478443,
+      "f1_micro_at_0.5": 0.11206645292917516,
+      "accuracy_at_0.5": 0.9482565348098578,
+      "auroc_per_class": {
+        "Atelectasis": 0.778474550010084,
+        "Cardiomegaly": 0.8626137306707679,
+        "Effusion": 0.8597334921559302,
+        "Infiltration": 0.7003294522403852,
+        "Mass": 0.7705528517592846,
+        "Nodule": 0.660274617621034,
+        "Pneumonia": 0.7441783343056366,
+        "Pneumothorax": 0.8416377685294363,
+        "Consolidation": 0.7966775437402299,
+        "Edema": 0.9102613454295762,
+        "Emphysema": 0.8521763492437383,
+        "Fibrosis": 0.771941321330091,
+        "Pleural_Thickening": 0.7821439192870389,
+        "Hernia": 0.8535350880881302
+      },
+      "thresholds": {
+        "Atelectasis": 0.16,
+        "Cardiomegaly": 0.12,
+        "Effusion": 0.22,
+        "Infiltration": 0.2,
+        "Mass": 0.14,
+        "Nodule": 0.09999999999999999,
+        "Pneumonia": 0.03,
+        "Pneumothorax": 0.14,
+        "Consolidation": 0.13,
+        "Edema": 0.08,
+        "Emphysema": 0.19,
+        "Fibrosis": 0.06999999999999999,
+        "Pleural_Thickening": 0.08,
+        "Hernia": 0.02
+      },
+      "ci95": {
+        "auroc_macro": [
+          0.7916895765730252,
+          0.8057845867932399
+        ],
+        "f1_macro_tuned": [
+          0.24490910800155663,
+          0.2607529330705548
+        ],
+        "f1_micro_tuned": [
+          0.3232238423049592,
+          0.3356712936287049
+        ]
+      },
+      "total_params": 11183694,
+      "trainable_params": 8400910,
+      "best_epoch": 2,
+      "avg_epoch_time_sec": 100.50227465629578,
+      "epoch_times_sec": [
+        102.92095756530762,
+        99.73271203041077,
+        100.05179238319397,
+        100.08420538902283,
+        99.7217059135437
+      ],
+      "peak_memory_mb": 417.98681640625,
+      "inference_imgs_per_sec": 4787.3351405336,
+      "train_loss_history": [
+        0.16675381586077162,
+        0.1519372646391489,
+        0.14487476252493423,
+        0.1352676382428111,
+        0.12195370372135624
+      ],
+      "val_loss_history": [
+        0.15394227028233018,
+        0.15231284324943792,
+        0.15464364975237574,
+        0.15742453563066036,
+        0.16721137169706052
+      ]
+    },
+    "vit_b_16": {
+      "auroc_macro": 0.7929817250453237,
+      "f1_macro_tuned": 0.24010428702641345,
+      "f1_micro_tuned": 0.3260212714527435,
+      "f1_macro_at_0.5": 0.06896746630743388,
+      "f1_micro_at_0.5": 0.15029948460788412,
+      "accuracy_at_0.5": 0.9481970888462388,
+      "auroc_per_class": {
+        "Atelectasis": 0.7733032910688025,
+        "Cardiomegaly": 0.8494510392539315,
+        "Effusion": 0.8615613071060542,
+        "Infiltration": 0.6997365043550039,
+        "Mass": 0.7690527126371697,
+        "Nodule": 0.682564467197573,
+        "Pneumonia": 0.7384625802150179,
+        "Pneumothorax": 0.8144546671897863,
+        "Consolidation": 0.7876947624569282,
+        "Edema": 0.9063356694375663,
+        "Emphysema": 0.8426741828875708,
+        "Fibrosis": 0.7593646630686892,
+        "Pleural_Thickening": 0.7548793029335172,
+        "Hernia": 0.8622090008269212
+      },
+      "thresholds": {
+        "Atelectasis": 0.18000000000000002,
+        "Cardiomegaly": 0.09999999999999999,
+        "Effusion": 0.25,
+        "Infiltration": 0.27,
+        "Mass": 0.12,
+        "Nodule": 0.16,
+        "Pneumonia": 0.04,
+        "Pneumothorax": 0.19,
+        "Consolidation": 0.12,
+        "Edema": 0.11,
+        "Emphysema": 0.22,
+        "Fibrosis": 0.08,
+        "Pleural_Thickening": 0.08,
+        "Hernia": 0.03
+      },
+      "ci95": {
+        "auroc_macro": [
+          0.7869514378459245,
+          0.7994998068144991
+        ],
+        "f1_macro_tuned": [
+          0.23184809971563086,
+          0.24921665551552089
+        ],
+        "f1_micro_tuned": [
+          0.31964801938726445,
+          0.3327919916805309
+        ]
+      },
+      "total_params": 85809422,
+      "trainable_params": 7098638,
+      "best_epoch": 2,
+      "avg_epoch_time_sec": 481.7771320819855,
+      "epoch_times_sec": [
+        483.8209447860718,
+        480.22971653938293,
+        481.9261612892151,
+        480.91944432258606,
+        481.9893934726715
+      ],
+      "peak_memory_mb": 980.3056640625,
+      "inference_imgs_per_sec": 362.0861717808105,
+      "train_loss_history": [
+        0.16646351054809125,
+        0.1568061936810783,
+        0.15325370955100165,
+        0.15090297260070995,
+        0.1502837933855189
+      ],
+      "val_loss_history": [
+        0.1569857781774191,
+        0.15544421501995945,
+        0.15560535185690616,
+        0.1563247080481551,
+        0.16251614077916163
+      ]
+    },
+    "maxvit_t": {
+      "auroc_macro": 0.7901742795970399,
+      "f1_macro_tuned": 0.23670854878741965,
+      "f1_micro_tuned": 0.31386613950861336,
+      "f1_macro_at_0.5": 0.05701445348293758,
+      "f1_micro_at_0.5": 0.10823392493453593,
+      "accuracy_at_0.5": 0.9479423204307285,
+      "auroc_per_class": {
+        "Atelectasis": 0.7706425835390618,
+        "Cardiomegaly": 0.8147527815808475,
+        "Effusion": 0.8536334832254244,
+        "Infiltration": 0.6915313889757442,
+        "Mass": 0.7524553493944799,
+        "Nodule": 0.6752900391859437,
+        "Pneumonia": 0.7327011047216898,
+        "Pneumothorax": 0.8314844853565193,
+        "Consolidation": 0.7831273305015213,
+        "Edema": 0.9060490750951955,
+        "Emphysema": 0.8528071621804891,
+        "Fibrosis": 0.7695461016606482,
+        "Pleural_Thickening": 0.7671876171482553,
+        "Hernia": 0.8612314117927371
+      },
+      "thresholds": {
+        "Atelectasis": 0.13,
+        "Cardiomegaly": 0.09,
+        "Effusion": 0.24000000000000002,
+        "Infiltration": 0.21000000000000002,
+        "Mass": 0.09999999999999999,
+        "Nodule": 0.11,
+        "Pneumonia": 0.04,
+        "Pneumothorax": 0.16,
+        "Consolidation": 0.09,
+        "Edema": 0.13,
+        "Emphysema": 0.11,
+        "Fibrosis": 0.06999999999999999,
+        "Pleural_Thickening": 0.08,
+        "Hernia": 0.01
+      },
+      "ci95": {
+        "auroc_macro": [
+          0.7827123362661841,
+          0.7965867609599964
+        ],
+        "f1_macro_tuned": [
+          0.22985541584529165,
+          0.24379900287282594
+        ],
+        "f1_micro_tuned": [
+          0.3068384701346357,
+          0.32031058002124513
+        ]
+      },
+      "total_params": 30414806,
+      "trainable_params": 9232814,
+      "best_epoch": 4,
+      "avg_epoch_time_sec": 344.7733090400696,
+      "epoch_times_sec": [
+        347.01591753959656,
+        343.92745876312256,
+        345.3548882007599,
+        344.01987624168396,
+        343.54840445518494
+      ],
+      "peak_memory_mb": 1315.134765625,
+      "inference_imgs_per_sec": 375.1134079088727,
+      "train_loss_history": [
+        0.17499614863384508,
+        0.16250538815353766,
+        0.15943324556771732,
+        0.1574178669650296,
+        0.15567821232361953
+      ],
+      "val_loss_history": [
+        0.16100169195591724,
+        0.15741289548660867,
+        0.1560831689222684,
+        0.15501431001796467,
+        0.15505005858356963
+      ]
+    }
+  },
+  "pairwise_bootstrap": {
+    "densenet121 - resnet18 | auroc_macro": {
+      "diff": -0.007250712285246985,
+      "ci95": [
+        -0.011398812108220321,
+        -0.00327497955214087
+      ],
+      "significativa": true
+    },
+    "densenet121 - resnet18 | f1_macro_tuned": {
+      "diff": -0.008693346498124394,
+      "ci95": [
+        -0.017341270555367327,
+        0.0006881785831601204
+      ],
+      "significativa": false
+    },
+    "densenet121 - resnet18 | f1_micro_tuned": {
+      "diff": -0.006089893453788742,
+      "ci95": [
+        -0.01101880465502295,
+        -0.0010457600243129004
+      ],
+      "significativa": true
+    },
+    "densenet121 - vit_b_16 | auroc_macro": {
+      "diff": -0.0013374113011876965,
+      "ci95": [
+        -0.006188867004845419,
+        0.003643054869502242
+      ],
+      "significativa": false
+    },
+    "densenet121 - vit_b_16 | f1_macro_tuned": {
+      "diff": 0.003685032482569378,
+      "ci95": [
+        -0.003894259293556527,
+        0.010822139757455274
+      ],
+      "significativa": false
+    },
+    "densenet121 - vit_b_16 | f1_micro_tuned": {
+      "diff": -0.0025722105534833895,
+      "ci95": [
+        -0.0078012024645273915,
+        0.0024830868938367605
+      ],
+      "significativa": false
+    },
+    "densenet121 - maxvit_t | auroc_macro": {
+      "diff": 0.001470034147096122,
+      "ci95": [
+        -0.0030257726492616322,
+        0.006076528220657101
+      ],
+      "significativa": false
+    },
+    "densenet121 - maxvit_t | f1_macro_tuned": {
+      "diff": 0.007080770721563184,
+      "ci95": [
+        -0.0018079453363665772,
+        0.017057213084804852
+      ],
+      "significativa": false
+    },
+    "densenet121 - maxvit_t | f1_micro_tuned": {
+      "diff": 0.00958292139064676,
+      "ci95": [
+        0.004750863636672827,
+        0.014548632711386723
+      ],
+      "significativa": true
+    },
+    "densenet121 - ensemble | auroc_macro": {
+      "diff": -0.021807265705745316,
+      "ci95": [
+        -0.02468097827153787,
+        -0.018960638705317296
+      ],
+      "significativa": true
+    },
+    "densenet121 - ensemble | f1_macro_tuned": {
+      "diff": -0.02638218501802783,
+      "ci95": [
+        -0.035378855105404595,
+        -0.017933279798740674
+      ],
+      "significativa": true
+    },
+    "densenet121 - ensemble | f1_micro_tuned": {
+      "diff": -0.020131715274025075,
+      "ci95": [
+        -0.02412346927211009,
+        -0.016388471952293766
+      ],
+      "significativa": true
+    },
+    "resnet18 - vit_b_16 | auroc_macro": {
+      "diff": 0.005913300984059289,
+      "ci95": [
+        0.0008740341664592201,
+        0.01099572721056332
+      ],
+      "significativa": true
+    },
+    "resnet18 - vit_b_16 | f1_macro_tuned": {
+      "diff": 0.012378378980693772,
+      "ci95": [
+        0.004043123705986019,
+        0.020109630243516873
+      ],
+      "significativa": true
+    },
+    "resnet18 - vit_b_16 | f1_micro_tuned": {
+      "diff": 0.0035176829003053522,
+      "ci95": [
+        -0.0017892897041846113,
+        0.008384952617965258
+      ],
+      "significativa": false
+    },
+    "resnet18 - maxvit_t | auroc_macro": {
+      "diff": 0.008720746432343107,
+      "ci95": [
+        0.004385614811312014,
+        0.013225528359847041
+      ],
+      "significativa": true
+    },
+    "resnet18 - maxvit_t | f1_macro_tuned": {
+      "diff": 0.015774117219687578,
+      "ci95": [
+        0.008930875595471838,
+        0.022384328032951033
+      ],
+      "significativa": true
+    },
+    "resnet18 - maxvit_t | f1_micro_tuned": {
+      "diff": 0.0156728148444355,
+      "ci95": [
+        0.010563920355903597,
+        0.020734661065283357
+      ],
+      "significativa": true
+    },
+    "resnet18 - ensemble | auroc_macro": {
+      "diff": -0.01455655342049833,
+      "ci95": [
+        -0.017125330738120954,
+        -0.011742059483557152
+      ],
+      "significativa": true
+    },
+    "resnet18 - ensemble | f1_macro_tuned": {
+      "diff": -0.017688838519903438,
+      "ci95": [
+        -0.024956822081416564,
+        -0.011039866022252872
+      ],
+      "significativa": true
+    },
+    "resnet18 - ensemble | f1_micro_tuned": {
+      "diff": -0.014041821820236333,
+      "ci95": [
+        -0.018285262660186735,
+        -0.010381010678699332
+      ],
+      "significativa": true
+    },
+    "vit_b_16 - maxvit_t | auroc_macro": {
+      "diff": 0.0028074454482838185,
+      "ci95": [
+        -0.0023402830587728155,
+        0.007828096573119616
+      ],
+      "significativa": false
+    },
+    "vit_b_16 - maxvit_t | f1_macro_tuned": {
+      "diff": 0.0033957382389938062,
+      "ci95": [
+        -0.004264238660151239,
+        0.011110060365525939
+      ],
+      "significativa": false
+    },
+    "vit_b_16 - maxvit_t | f1_micro_tuned": {
+      "diff": 0.012155131944130149,
+      "ci95": [
+        0.006988129072092364,
+        0.01752706337145706
+      ],
+      "significativa": true
+    },
+    "vit_b_16 - ensemble | auroc_macro": {
+      "diff": -0.02046985440455762,
+      "ci95": [
+        -0.02410956175320613,
+        -0.016670190109984308
+      ],
+      "significativa": true
+    },
+    "vit_b_16 - ensemble | f1_macro_tuned": {
+      "diff": -0.03006721750059721,
+      "ci95": [
+        -0.03924440965272284,
+        -0.022509240709953377
+      ],
+      "significativa": true
+    },
+    "vit_b_16 - ensemble | f1_micro_tuned": {
+      "diff": -0.017559504720541685,
+      "ci95": [
+        -0.021995968907456438,
+        -0.013510029176167474
+      ],
+      "significativa": true
+    },
+    "maxvit_t - ensemble | auroc_macro": {
+      "diff": -0.023277299852841438,
+      "ci95": [
+        -0.026242930950108514,
+        -0.020314652902418413
+      ],
+      "significativa": true
+    },
+    "maxvit_t - ensemble | f1_macro_tuned": {
+      "diff": -0.033462955739591016,
+      "ci95": [
+        -0.041133957081043226,
+        -0.025927625112279588
+      ],
+      "significativa": true
+    },
+    "maxvit_t - ensemble | f1_micro_tuned": {
+      "diff": -0.029714636664671834,
+      "ci95": [
+        -0.034072756491942364,
+        -0.025856578546295462
+      ],
+      "significativa": true
+    }
+  },
+  "ensemble": {
+    "auroc_macro": 0.8134515794498813,
+    "f1_macro_tuned": 0.27017150452701066,
+    "f1_micro_tuned": 0.3435807761732852,
+    "f1_macro_at_0.5": 0.050203335492009525,
+    "f1_micro_at_0.5": 0.09486166007905138,
+    "accuracy_at_0.5": 0.9484645956825246,
+    "auroc_per_class": {
+      "Atelectasis": 0.7886587967195304,
+      "Cardiomegaly": 0.8683833423981846,
+      "Effusion": 0.87312022240388,
+      "Infiltration": 0.7082849339405624,
+      "Mass": 0.794381819153183,
+      "Nodule": 0.7027939261787384,
+      "Pneumonia": 0.7528622176848071,
+      "Pneumothorax": 0.8469339586158988,
+      "Consolidation": 0.8006702833991497,
+      "Edema": 0.9199533711167523,
+      "Emphysema": 0.8757590276736833,
+      "Fibrosis": 0.7897326601633505,
+      "Pleural_Thickening": 0.7908029560097368,
+      "Hernia": 0.8759845968408807
+    },
+    "thresholds": {
+      "Atelectasis": 0.14,
+      "Cardiomegaly": 0.09999999999999999,
+      "Effusion": 0.24000000000000002,
+      "Infiltration": 0.2,
+      "Mass": 0.11,
+      "Nodule": 0.12,
+      "Pneumonia": 0.03,
+      "Pneumothorax": 0.18000000000000002,
+      "Consolidation": 0.09999999999999999,
+      "Edema": 0.09999999999999999,
+      "Emphysema": 0.18000000000000002,
+      "Fibrosis": 0.06999999999999999,
+      "Pleural_Thickening": 0.08,
+      "Hernia": 0.02
+    },
+    "ci95": {
+      "auroc_macro": [
+        0.8069151614565735,
+        0.820007581115566
+      ],
+      "f1_macro_tuned": [
+        0.26047720705751726,
+        0.2803764781689482
+      ],
+      "f1_micro_tuned": [
+        0.33667014455704236,
+        0.3498840800153022
+      ]
+    },
+    "members": [
+      "densenet121",
+      "resnet18",
+      "vit_b_16",
+      "maxvit_t"
+    ]
+  }
+}

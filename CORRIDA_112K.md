@@ -41,3 +41,22 @@ Para bajar aún más la carga, sube `GPU_DUTY_SLEEP` (por ejemplo, a 2.0 la GPU 
 ## Cómo usar los resultados
 
 Si la corrida termina, permite responder en la discusión qué arquitectura se beneficia más de pasar de 12k a 112k imágenes. Integrarla al paper y a las slides es opcional y se decide después de ver los resultados.
+
+## Resultados (15 de octubre de 2026, 04:47–08:32, `OK`, sin apagados)
+
+La corrida duró 3 h 45 min con el modo de bajo consumo y **ningún apagado del equipo**. Prueba: 16,822 imágenes de 4,747 pacientes; entrenamiento: 78,484 imágenes de 21,578 pacientes.
+
+| Modelo | AUROC 12k | AUROC 112k [IC 95%] | Cambio | F1 macro | F1 micro | Mejor época | Cómputo total |
+|---|---|---|---|---|---|---|---|
+| DenseNet121 | 0.745 | 0.792 [0.785, 0.799] | +0.046 | 0.244 | 0.323 | 2 | 850 s |
+| ResNet18 | 0.749 | **0.799** [0.792, 0.806] | +0.050 | 0.252 | 0.330 | 2 | 503 s |
+| ViT-B/16 | 0.742 | 0.793 [0.787, 0.799] | +0.051 | 0.240 | 0.326 | 2 | 2,409 s |
+| MaxViT-T (híbrido) | 0.733 | 0.790 [0.783, 0.797] | **+0.057** | 0.237 | 0.314 | 4 | 1,724 s |
+| **Ensemble** | 0.767 | **0.813** [0.807, 0.820] | +0.046 | **0.270** | **0.344** | – | – |
+
+- **Con ~9 veces más datos, todos mejoran unos +0.05 de AUROC.** El híbrido es el que más gana (+0.057) y ahora sí converge (mejor época 4), aunque sigue siendo el más bajo.
+- **El ensemble sigue siendo el mejor** y supera significativamente a cada modelo (+0.015 a +0.023).
+- **Con un conjunto de prueba ~9 veces mayor, los intervalos son mucho más estrechos** (±0.007). Ahora ResNet18 sí es significativamente mejor que DenseNet121 (+0.007), ViT-B/16 (+0.006) y MaxViT-T (+0.009). Las diferencias entre DenseNet121, ViT-B/16 y MaxViT-T siguen sin ser significativas.
+- **Exactitud:** sigue en ≈0.948 para todos, igual a la del clasificador trivial (0.9475).
+- **Costo:** igual que en 12k. ResNet18 es el más rápido (4,787 img/s en inferencia, frente a 362 del ViT y 375 de MaxViT). La memoria del ViT (980 MB) es una medición limpia, sin reanudaciones.
+- **El ensemble (0.813) se acerca al AUROC de CheXNet (≈0.84)**, que además afinó toda la red.
