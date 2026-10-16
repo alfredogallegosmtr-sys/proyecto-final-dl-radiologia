@@ -1,6 +1,10 @@
-# Dataset (NIH ChestX-ray14) and anything derived from it — never commit, lives only on the training machine
+# ---------------------------------------------------------------------------
+# Dataset NIH ChestX-ray14 y todo lo derivado: nunca se versiona (~42 GB).
+# Se descarga de Kaggle y se coloca como archive.zip en la raiz (ver README).
+# ---------------------------------------------------------------------------
 archive.zip
 *.zip
+!paper/overleaf_upload.zip
 data/
 images/
 images_*/
@@ -8,26 +12,75 @@ images_*/
 *.png
 *.jpg
 *.jpeg
+# ...excepto las figuras de resultados, que si forman parte del repo
 !results/*.png
 !results/*.jpg
 !results/*/*.png
 !results/*/*.jpg
 
-# Model checkpoints / weights — can be large, not needed in git history
+# ---------------------------------------------------------------------------
+# Pesos y checkpoints de modelos (pesados, se regeneran al entrenar)
+# ---------------------------------------------------------------------------
 *.pt
 *.pth
 *.ckpt
+*.safetensors
 checkpoints/
 saved_models/
 
-# Python / Jupyter
+# ---------------------------------------------------------------------------
+# Python / Jupyter / entornos virtuales
+# ---------------------------------------------------------------------------
 __pycache__/
-*.pyc
+*.py[cod]
 .ipynb_checkpoints/
+.venv*/
+venv/
+env/
+.python-version
 
-# OS
+# ---------------------------------------------------------------------------
+# Credenciales y configuracion local (nunca subir)
+# ---------------------------------------------------------------------------
+.env
+.env.*
+*.key
+*.pem
+kaggle.json
+
+# ---------------------------------------------------------------------------
+# Logs y temporales
+# ---------------------------------------------------------------------------
+*.log
+*.tmp
+*.bak
+
+# LaTeX (archivos auxiliares de compilacion; el PDF final si se versiona)
+*.aux
+*.out
+*.toc
+*.synctex.gz
+*.fdb_latexmk
+*.fls
+*.bbl
+*.blg
+
+# Office (archivos de bloqueo mientras el .pptx esta abierto)
+~$*
+
+# Node (generador de la presentacion)
+node_modules/
+
+# ---------------------------------------------------------------------------
+# Editores y sistema operativo
+# ---------------------------------------------------------------------------
+.vscode/
+.idea/
 .DS_Store
 Thumbs.db
+desktop.ini
 
-# Paquete para subir a Overleaf (paper.tex + figuras) - si se versiona
-!paper/overleaf_upload.zip
+# ---------------------------------------------------------------------------
+# Notas personales de la presentacion (guion y Q&A): solo locales
+# ---------------------------------------------------------------------------
+slides/guion_presentacion.md

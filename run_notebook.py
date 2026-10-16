@@ -2,7 +2,7 @@
 
 Uso (desde la raiz del repo, con el Python del entorno que tiene PyTorch):
     python run_notebook.py [notebook.ipynb] [kernel]
-    python run_notebook.py ChestXray14_Model_Comparison_112k.ipynb chestxray-rocm   # corrida con el dataset completo
+    python run_notebook.py ChestXray14_112k_bajo_consumo.ipynb chestxray-rocm   # corrida con el dataset completo
 
 Si la ejecucion se corta (p. ej. se apaga el equipo), basta volver a correr el mismo comando: la cache de imagenes
 y los checkpoints por epoca (checkpoints/) permiten continuar donde se quedo. Imprime OK o FAILED al terminar.

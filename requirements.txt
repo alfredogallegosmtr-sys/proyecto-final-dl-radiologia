@@ -1,0 +1,24 @@
+# Dependencias del proyecto (versiones con las que se obtuvieron los resultados de results/, Python 3.14).
+# Instalar con:  pip install -r requirements.txt
+#
+# PyTorch: los resultados se obtuvieron con torch 2.13.0a0+rocm7.13 y torchvision 0.27.0a0+rocm7.13
+# (wheels nightly de AMD para GPU Radeon, ver README). Con una GPU NVIDIA o en CPU, las lineas de abajo
+# instalan la version estandar de PyPI; para la variante CUDA, ver https://pytorch.org/get-started/locally/
+torch>=2.4
+torchvision>=0.19
+
+# Datos, metricas y graficas
+numpy==2.4.4
+pandas==3.0.6
+scikit-learn==1.9.1
+matplotlib==3.11.2
+seaborn==0.13.2
+pillow==12.2.0
+
+# Interpretabilidad (Grad-CAM)
+grad-cam==1.5.7
+
+# Ejecutar los notebooks (Jupyter o run_notebook.py)
+ipykernel==7.4.0
+nbclient==0.11.0
+nbformat==5.11.1

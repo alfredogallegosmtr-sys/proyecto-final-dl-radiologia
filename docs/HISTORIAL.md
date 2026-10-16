@@ -1,6 +1,6 @@
 # Historial del proyecto
 
-Bitácora de lo que se ha hecho, por qué, qué se corrigió y qué falta. Complementa a [`PLAN.md`](PLAN.md) (las decisiones originales y su justificación) y al [`README.md`](README.md) (cómo correr todo). Si algo de aquí contradice a `PLAN.md`, **este archivo es lo más reciente**.
+Bitácora de lo que se ha hecho, por qué, qué se corrigió y qué falta. Complementa a [`PLAN.md`](PLAN.md) (las decisiones originales y su justificación) y al [`README.md`](../README.md) (cómo correr todo). Si algo de aquí contradice a `PLAN.md`, **este archivo es lo más reciente**.
 
 Última actualización: jueves 15 de octubre de 2026, ~9:15am (CDMX). Entrega: **hoy, 4–9pm**.
 
@@ -173,9 +173,9 @@ Accuracy ≈ 0.945 para los 3; F1 macro@0.5: DenseNet 0.034, ResNet 0.083, ViT 0
 | `ChestXray14_Model_Comparison.ipynb` | Notebook principal (ejecutado, 12k imágenes, 4 modelos + ensemble) |
 | `results/predictions.npz` | Probabilidades de validación y prueba de cada modelo y del ensemble (para recalcular métricas sin reentrenar) |
 | `ChestXray14_112k_bajo_consumo.ipynb` | Corrida 5 (ejecutada): dataset completo, 4 modelos + ensemble, modo de bajo consumo |
-| `correr_112k.bat` / `estado_112k.py` / `CORRIDA_112K.md` | Lanzar/reanudar la corrida de 112k / ver su avance / descripción y resultados |
+| `correr_112k.bat` / `estado_112k.py` / `docs/CORRIDA_112K.md` | Lanzar/reanudar la corrida de 112k / ver su avance / descripción y resultados |
 | `results/full_112k/` | Resultados de la corrida 5 (métricas, predicciones, figuras) |
-| `ChestXray14_Model_Comparison_112k.ipynb` | Versión anterior para el dataset completo (3 modelos, sin bajo consumo); **sin ejecutar**, reemplazada por la de bajo consumo |
+| ~~`ChestXray14_Model_Comparison_112k.ipynb`~~ | Versión anterior para el dataset completo (3 modelos, sin bajo consumo); nunca se ejecutó y se **eliminó** del repo al reemplazarla por la de bajo consumo |
 | `chestxray_data.py` | Clase Dataset + funciones de la caché (tienen que estar fuera del notebook por Windows) |
 | `run_notebook.py` | Ejecuta un notebook sin abrir Jupyter: `python run_notebook.py [notebook] [kernel]` |
 | `results/metrics.json` | **Fuente única de verdad** para paper y slides |
@@ -185,7 +185,8 @@ Accuracy ≈ 0.945 para los 3; F1 macro@0.5: DenseNet 0.034, ResNet 0.083, ViT 0
 | `paper/overleaf_upload.zip` | `paper.tex` + figuras en `figures/`, listo para subir a Overleaf |
 | `slides/presentacion_final.pptx` / `.pdf` | Presentación (10 diapositivas, con notas del orador) |
 | `slides/build_deck.js` | Generador de la presentación desde `results/metrics.json` |
-| `PLAN.md` / `README.md` / `HISTORIAL.md` | Plan original / cómo correr / este historial |
+| `docs/PLAN.md` / `README.md` / `docs/HISTORIAL.md` | Plan original / cómo correr / este historial |
+| `requirements.txt` | Dependencias con las versiones usadas |
 
 Fuera del repo (no se suben): `archive.zip` (42GB, en la raíz del repo pero ignorado por git), `images_256/` (caché de 112k a 256px), `images_subset/` (imágenes de la corrida de 12k), `checkpoints/` (`12k/`: checkpoints de la corrida 4; raíz: DenseNet de la corrida 3 a medias), `ProyectoFinal/archive/` (extracción completa duplicada de 42GB), `ProyectoFinal/.venv-rocm/`.
 
