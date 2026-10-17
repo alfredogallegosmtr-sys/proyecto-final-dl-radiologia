@@ -1,0 +1,239 @@
+{
+  "config": {
+    "modelos": "checkpoints/112k (mejor epoca)",
+    "img_size": 224,
+    "seed": 42,
+    "cajas_total": 984,
+    "cajas_prueba": 128
+  },
+  "prueba": [
+    {
+      "metodo": "densenet121",
+      "n_cajas": 128,
+      "pointing_game": 0.28125,
+      "IC95_lo": 0.2106120712149715,
+      "IC95_hi": 0.36463580199045076,
+      "energia_en_caja": 0.18772668367145684
+    },
+    {
+      "metodo": "resnet18",
+      "n_cajas": 128,
+      "pointing_game": 0.203125,
+      "IC95_lo": 0.14255643643579252,
+      "IC95_hi": 0.28099424862870914,
+      "energia_en_caja": 0.17372035813241382
+    },
+    {
+      "metodo": "vit_b_16",
+      "n_cajas": 128,
+      "pointing_game": 0.28125,
+      "IC95_lo": 0.2106120712149715,
+      "IC95_hi": 0.36463580199045076,
+      "energia_en_caja": 0.17194863486135148
+    },
+    {
+      "metodo": "maxvit_t",
+      "n_cajas": 128,
+      "pointing_game": 0.2578125,
+      "IC95_lo": 0.18986792282559609,
+      "IC95_hi": 0.33987079393755004,
+      "energia_en_caja": 0.1582477155907327
+    },
+    {
+      "metodo": "ensemble_cam",
+      "n_cajas": 128,
+      "pointing_game": 0.3359375,
+      "IC95_lo": 0.25995249746191124,
+      "IC95_hi": 0.42148340744215546,
+      "energia_en_caja": 0.18946720047279086
+    },
+    {
+      "metodo": "vit_rollout",
+      "n_cajas": 128,
+      "pointing_game": 0.0,
+      "IC95_lo": 0.0,
+      "IC95_hi": 0.02913799589810803,
+      "energia_en_caja": 0.05522840169714982
+    },
+    {
+      "metodo": "baseline_center",
+      "n_cajas": 128,
+      "pointing_game": 0.2890625,
+      "IC95_lo": 0.21758282345798544,
+      "IC95_hi": 0.37283476856152886,
+      "energia_en_caja": null
+    },
+    {
+      "metodo": "baseline_random",
+      "n_cajas": 128,
+      "pointing_game": 0.0884609716198839,
+      "IC95_lo": null,
+      "IC95_hi": null,
+      "energia_en_caja": 0.0884609716198839
+    }
+  ],
+  "todas_880": [
+    {
+      "metodo": "densenet121",
+      "n_cajas": 984,
+      "pointing_game": 0.22052845528455284,
+      "IC95_lo": 0.19573743526175336,
+      "IC95_hi": 0.24749313935668749,
+      "energia_en_caja": 0.14784701144044882
+    },
+    {
+      "metodo": "resnet18",
+      "n_cajas": 984,
+      "pointing_game": 0.19817073170731708,
+      "IC95_lo": 0.17445841635079767,
+      "IC95_hi": 0.2242306042371185,
+      "energia_en_caja": 0.14399682994016683
+    },
+    {
+      "metodo": "vit_b_16",
+      "n_cajas": 984,
+      "pointing_game": 0.23577235772357724,
+      "IC95_lo": 0.21030897899068826,
+      "IC95_hi": 0.26329083701220135,
+      "energia_en_caja": 0.140325323320547
+    },
+    {
+      "metodo": "maxvit_t",
+      "n_cajas": 984,
+      "pointing_game": 0.21747967479674796,
+      "IC95_lo": 0.19282907256041634,
+      "IC95_hi": 0.24432765378113477,
+      "energia_en_caja": 0.1290643551954671
+    },
+    {
+      "metodo": "ensemble_cam",
+      "n_cajas": 984,
+      "pointing_game": 0.30386178861788615,
+      "IC95_lo": 0.27593314829665333,
+      "IC95_hi": 0.333315945890107,
+      "energia_en_caja": 0.1503128123536157
+    },
+    {
+      "metodo": "vit_rollout",
+      "n_cajas": 984,
+      "pointing_game": 0.006097560975609756,
+      "IC95_lo": 0.002797436439118118,
+      "IC95_hi": 0.013239142704744623,
+      "energia_en_caja": 0.046843634859769515
+    },
+    {
+      "metodo": "baseline_center",
+      "n_cajas": 984,
+      "pointing_game": 0.2184959349593496,
+      "IC95_lo": 0.19379830047788701,
+      "IC95_hi": 0.2453830419559607,
+      "energia_en_caja": null
+    },
+    {
+      "metodo": "baseline_random",
+      "n_cajas": 984,
+      "pointing_game": 0.0754488574299855,
+      "IC95_lo": null,
+      "IC95_hi": null,
+      "energia_en_caja": 0.0754488574299855
+    }
+  ],
+  "prueba_por_hallazgo": [
+    {
+      "label": "Atelectasis",
+      "n_cajas": 21,
+      "densenet121": 0.09523809523809523,
+      "resnet18": 0.047619047619047616,
+      "vit_b_16": 0.0,
+      "maxvit_t": 0.19047619047619047,
+      "ensemble_cam": 0.0,
+      "vit_rollout": 0.0,
+      "baseline_center": 0.14285714285714285,
+      "baseline_random": 0.033553478330628085
+    },
+    {
+      "label": "Cardiomegaly",
+      "n_cajas": 29,
+      "densenet121": 0.7931034482758621,
+      "resnet18": 0.5172413793103449,
+      "vit_b_16": 0.896551724137931,
+      "maxvit_t": 0.5172413793103449,
+      "ensemble_cam": 0.9655172413793104,
+      "vit_rollout": 0.0,
+      "baseline_center": 0.9310344827586207,
+      "baseline_random": 0.17620267583110108
+    },
+    {
+      "label": "Effusion",
+      "n_cajas": 15,
+      "densenet121": 0.2,
+      "resnet18": 0.3333333333333333,
+      "vit_b_16": 0.06666666666666667,
+      "maxvit_t": 0.26666666666666666,
+      "ensemble_cam": 0.3333333333333333,
+      "vit_rollout": 0.0,
+      "baseline_center": 0.0,
+      "baseline_random": 0.06670561443781901
+    },
+    {
+      "label": "Infiltration",
+      "n_cajas": 11,
+      "densenet121": 0.18181818181818182,
+      "resnet18": 0.18181818181818182,
+      "vit_b_16": 0.2727272727272727,
+      "maxvit_t": 0.18181818181818182,
+      "ensemble_cam": 0.18181818181818182,
+      "vit_rollout": 0.0,
+      "baseline_center": 0.18181818181818182,
+      "baseline_random": 0.09958232794052906
+    },
+    {
+      "label": "Mass",
+      "n_cajas": 11,
+      "densenet121": 0.2727272727272727,
+      "resnet18": 0.18181818181818182,
+      "vit_b_16": 0.0,
+      "maxvit_t": 0.09090909090909091,
+      "ensemble_cam": 0.18181818181818182,
+      "vit_rollout": 0.0,
+      "baseline_center": 0.09090909090909091,
+      "baseline_random": 0.04108297792742236
+    },
+    {
+      "label": "Nodule",
+      "n_cajas": 11,
+      "densenet121": 0.09090909090909091,
+      "resnet18": 0.0,
+      "vit_b_16": 0.09090909090909091,
+      "maxvit_t": 0.0,
+      "ensemble_cam": 0.0,
+      "vit_rollout": 0.0,
+      "baseline_center": 0.0,
+      "baseline_random": 0.006794373566860348
+    },
+    {
+      "label": "Pneumonia",
+      "n_cajas": 17,
+      "densenet121": 0.058823529411764705,
+      "resnet18": 0.0,
+      "vit_b_16": 0.29411764705882354,
+      "maxvit_t": 0.29411764705882354,
+      "ensemble_cam": 0.29411764705882354,
+      "vit_rollout": 0.0,
+      "baseline_center": 0.23529411764705882,
+      "baseline_random": 0.11940106083585687
+    },
+    {
+      "label": "Pneumothorax",
+      "n_cajas": 13,
+      "densenet121": 0.07692307692307693,
+      "resnet18": 0.07692307692307693,
+      "vit_b_16": 0.0,
+      "maxvit_t": 0.15384615384615385,
+      "ensemble_cam": 0.07692307692307693,
+      "vit_rollout": 0.0,
+      "baseline_center": 0.0,
+      "baseline_random": 0.06584961528771058
+    }
+  ]
+}

@@ -1,12 +1,16 @@
-"""Muestra el avance de la corrida de 112k leyendo los checkpoints (no interrumpe nada).
-Uso (con el Python del entorno que tiene PyTorch): python estado_112k.py"""
+"""Muestra el avance de una corrida de 112k leyendo sus checkpoints (no interrumpe nada).
+Uso (con el Python del entorno que tiene PyTorch):
+    python estado_112k.py                    # corrida original (checkpoints/112k)
+    python estado_112k.py 112k_ft_completo   # fine-tuning completo
+    python estado_112k.py 112k_semilla1      # semilla 1 (o 112k_semilla2)"""
+import sys
 import time
 from pathlib import Path
 
 import torch
 
 ROOT = Path(__file__).resolve().parent
-CKPT = ROOT / "checkpoints" / "112k"
+CKPT = ROOT / "checkpoints" / (sys.argv[1] if len(sys.argv) > 1 else "112k")
 MODELS = ["densenet121", "resnet18", "vit_b_16", "maxvit_t"]
 EPOCHS = 5
 
@@ -31,5 +35,11 @@ if log.exists():
     lines = [l for l in log.read_text(encoding="utf-8", errors="replace").splitlines() if l.startswith(("OK", "FAILED", "["))]
     if lines:
         print("Ultimas lineas del log:", *lines[-3:], sep="\n  ")
-results = ROOT / "results" / "full_112k" / "metrics.json"
-print("Resultados finales:", "listos en results/full_112k/" if results.exists() else "aun no")
+RESULTS_OF = {"112k": "full_112k", "112k_ft_completo": "full_112k_finetuning_completo",
+              "112k_semilla1": "full_112k_semilla1", "112k_semilla2": "full_112k_semilla2"}
+res_dir = RESULTS_OF.get(CKPT.name, "full_112k")
+results = ROOT / "results" / res_dir / "metrics.json"
+print("Resultados finales:", f"listos en results/{res_dir}/" if results.exists() else "aun no")
+queue_log = ROOT / "checkpoints" / "cola_extensiones.log"
+if queue_log.exists():
+    print("Cola de extensiones (ultimas lineas):", *queue_log.read_text(encoding="utf-8").splitlines()[-3:], sep="\n  ")
